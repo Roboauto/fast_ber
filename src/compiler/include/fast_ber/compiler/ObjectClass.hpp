@@ -14,8 +14,8 @@ void object_class_to_concrete(Asn1Tree& tree, Module& module, Type& type);
 
 Type create_concrete_type(Asn1Tree& tree, Module& module, ObjectClassFieldType& object_class_field);
 
-void                  remove_object_classes(Asn1Tree& tree, const std::set<std::string>& object_class_names);
-std::set<std::string> get_object_class_names(const Asn1Tree& tree);
+void                  remove_object_classes(Asn1Tree& tree, const std::unordered_set<std::string>& object_class_names);
+std::unordered_set<std::string> get_object_class_names(const Asn1Tree& tree);
 
 // Convert usage of object classes to standard ASN.1 types
 void resolve_object_classes(Asn1Tree& tree);

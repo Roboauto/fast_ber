@@ -3,8 +3,7 @@
 #include "autogen/all_types.hpp"
 
 #include <catch2/catch.hpp>
-
-#include "absl/time/clock.h"
+#include <boost/date_time.hpp>
 
 namespace dflt
 {
@@ -76,8 +75,8 @@ void test_type(const T& a)
     T                         f;
     std::array<uint8_t, 1000> buffer        = {};
     size_t                    encoded_len   = a.encoded_length();
-    fast_ber::EncodeResult    encode_result = a.encode(absl::Span<uint8_t>(buffer));
-    fast_ber::DecodeResult    decode_result = f.decode(fast_ber::BerView(absl::MakeSpan(buffer.data(), encoded_len)));
+    fast_ber::EncodeResult    encode_result = a.encode(std::span<uint8_t>(buffer));
+    fast_ber::DecodeResult    decode_result = f.decode(fast_ber::BerView(std::span(buffer.data(), encoded_len)));
     CHECK(encode_result.success);
     CHECK(decode_result.success);
     CHECK(encode_result.length == encoded_len);
@@ -96,8 +95,8 @@ void test_type(const T& a)
     {
         INFO(i);
 
-        fast_ber::EncodeResult destructive_encode_result = fast_ber::encode(absl::MakeSpan(buffer.data(), i), a);
-        fast_ber::DecodeResult destructive_decode_result = fast_ber::decode(absl::MakeSpan(buffer.data(), i), f);
+        fast_ber::EncodeResult destructive_encode_result = fast_ber::encode(std::span(buffer.data(), i), a);
+        fast_ber::DecodeResult destructive_decode_result = fast_ber::decode(std::span(buffer.data(), i), f);
 
         CHECK(!destructive_encode_result.success);
 
@@ -123,7 +122,7 @@ TEST_CASE("AllTypes: Check all types share a unified interface")
     test_type(fast_ber::Default<fast_ber::OctetString<>, dflt::StringDefault>("Non default string value"));
     // test_type(fast_ber::Duration<>);
     test_type(fast_ber::All::The_Enum(fast_ber::All::The_Enum::Values::pear));
-    test_type(fast_ber::All::The_GeneralizedTime(absl::Now()));
+    test_type(fast_ber::All::The_GeneralizedTime(boost::posix_time::microsec_clock::local_time()));
     test_type(fast_ber::All::The_Integer(5));
     test_type(fast_ber::All::The_Null());
     test_type(fast_ber::All::The_ObjectIdentifier(fast_ber::ObjectIdentifierComponents{1, 2, 500, 9999}));

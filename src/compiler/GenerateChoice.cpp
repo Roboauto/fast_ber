@@ -77,27 +77,27 @@ CodeBlock create_choice_definition(const ChoiceType& choice, const Module& modul
         block.add_line();
 
         block.add_line("template <typename T_,");
-        block.add_line("    typename = absl::enable_if_t<!std::is_same<absl::decay_t<T_>, " + name + ">::value>,");
-        block.add_line("    typename = absl::enable_if_t<ExactlyOnce<AcceptedType<T_&&>>::value && "
+        block.add_line("    typename = std::enable_if_t<!std::is_same<std::decay_t<T_>, " + name + ">::value>,");
+        block.add_line("    typename = std::enable_if_t<ExactlyOnce<AcceptedType<T_&&>>::value && "
                        "std::is_constructible<AcceptedType<T_&&>, T_&&>::value>>");
         block.add_line(name + "(T_&& t) noexcept(std::is_nothrow_constructible<AcceptedType<T_&&>, T_&&>::value) : "
                               "m_storage(std::forward<T_>(t)) {}");
 
         block.add_line("template <typename T_, typename... Args,");
         block.add_line(
-            "    typename = absl::enable_if_t<ExactlyOnce<T_>::value && std::is_constructible<T_, Args&&...>::value>>");
+            "    typename = std::enable_if_t<ExactlyOnce<T_>::value && std::is_constructible<T_, Args&&...>::value>>");
         block.add_line("explicit " + name +
                        "(in_place_type_t<T_> i, Args&&... args) : m_storage(std::forward<Args>(i, args)...) {}");
 
         block.add_line("template <typename T_, typename U, typename... Args,");
-        block.add_line("    typename = absl::enable_if_t<ExactlyOnce<T_>::value && std::is_constructible<T_, "
+        block.add_line("    typename = std::enable_if_t<ExactlyOnce<T_>::value && std::is_constructible<T_, "
                        "std::initializer_list<U>&, Args&&...>::value>>");
         block.add_line("explicit " + name +
                        "(in_place_type_t<T_> ip, std::initializer_list<U> il, Args&&... args) : m_storage(ip, il, "
                        "std::forward<Args>(args)...) {}");
 
         block.add_line("template <std::size_t i, typename... Args,");
-        block.add_line("    typename = absl::enable_if_t<std::is_constructible<ToType<i>, Args&&...>::value>>");
+        block.add_line("    typename = std::enable_if_t<std::is_constructible<ToType<i>, Args&&...>::value>>");
         block.add_line("explicit " + name +
                        "(in_place_index_t<i> ip, Args&&... args) : m_storage(ip, std::forward<Args>(args)...) {}");
 
@@ -106,7 +106,7 @@ CodeBlock create_choice_definition(const ChoiceType& choice, const Module& modul
         // Emplace
         block.add_line("template <typename T_, typename... Args,");
         block.add_line(
-            "    typename = absl::enable_if_t<std::is_constructible<T_, Args...>::value && ExactlyOnce<T_>::value>>");
+            "    typename = std::enable_if_t<std::is_constructible<T_, Args...>::value && ExactlyOnce<T_>::value>>");
         block.add_line("T_& emplace(Args&&... args)");
         {
             CodeScope scope2(block);
@@ -115,7 +115,7 @@ CodeBlock create_choice_definition(const ChoiceType& choice, const Module& modul
             }
         }
         block.add_line("template <std::size_t i, typename... Args>");
-        block.add_line("    absl::enable_if_t<std::is_constructible<ToType<i>, Args...>::value,");
+        block.add_line("    std::enable_if_t<std::is_constructible<ToType<i>, Args...>::value,");
         block.add_line("    ToType<i>&>");
         block.add_line("emplace(Args&&... args)");
         {
@@ -133,14 +133,14 @@ CodeBlock create_choice_definition(const ChoiceType& choice, const Module& modul
         block.add_line(create_template_definition({"Identifier"}));
         block.add_line("std::size_t encoded_length_with_id() const noexcept;");
         block.add_line(create_template_definition({"Identifier"}));
-        block.add_line("EncodeResult encode_with_id(absl::Span<uint8_t> output) const noexcept;");
+        block.add_line("EncodeResult encode_with_id(std::span<uint8_t> output) const noexcept;");
         block.add_line(create_template_definition({"Identifier"}));
         block.add_line("DecodeResult decode_with_id(BerView output) noexcept;");
         block.add_line();
 
         block.add_line("std::size_t encoded_length() const noexcept");
         block.add_line("{ return encoded_length_with_id<" + id + ">(); }");
-        block.add_line("EncodeResult encode(absl::Span<uint8_t> output) const noexcept");
+        block.add_line("EncodeResult encode(std::span<uint8_t> output) const noexcept");
         block.add_line("{ return encode_with_id<" + id + ">(output); }");
         block.add_line("DecodeResult decode(BerView input) noexcept");
         block.add_line("{ return decode_with_id<" + id + ">(input); }");
@@ -281,7 +281,7 @@ CodeBlock create_choice_functions_impl(const Asn1Tree&, const Module&, const Typ
     }
 
     CodeBlock         block;
-    const ChoiceType& choice = absl::get<ChoiceType>(absl::get<BuiltinType>(type));
+    const ChoiceType& choice = std::get<ChoiceType>(std::get<BuiltinType>(type));
 
     // block.add_block(create_choice_helpers(choice, name, true));
     block.add_block(create_choice_types(name, choice));

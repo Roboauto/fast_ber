@@ -15,8 +15,8 @@ TEST_CASE("Embedded Types: Encode and decode nested structures")
     REQUIRE(copy != collection);
 
     std::vector<uint8_t>          buffer(500, 0);
-    const fast_ber::EncodeResult& encode_res = fast_ber::encode(absl::Span<uint8_t>(buffer), collection);
-    const fast_ber::DecodeResult& decode_res = fast_ber::decode(absl::Span<uint8_t>(buffer), copy);
+    const fast_ber::EncodeResult& encode_res = fast_ber::encode(std::span<uint8_t>(buffer), collection);
+    const fast_ber::DecodeResult& decode_res = fast_ber::decode(std::span<uint8_t>(buffer), copy);
 
     REQUIRE(encode_res.success);
     REQUIRE(decode_res.success);

@@ -2,7 +2,7 @@
 #include "fast_ber/ber_types/Integer.hpp"
 #include "fast_ber/util/EncodeHelpers.hpp"
 
-#include "absl/types/optional.h"
+#include <optional>
 
 #include <catch2/catch.hpp>
 #include <limits>
@@ -39,8 +39,8 @@ TEST_CASE("Integer: Construction from int")
         fast_ber::Integer<>                                                   integer1(val);
         fast_ber::Integer<fast_ber::Id<fast_ber::Class::context_specific, 2>> integer2(integer1);
         fast_ber::Integer<fast_ber::Id<fast_ber::Class::context_specific, 4>> integer3;
-        absl::optional<fast_ber::Integer<>>                                   integer4;
-        absl::optional<fast_ber::Integer<>>                                   integer5(integer1);
+        std::optional<fast_ber::Integer<>>                                   integer4;
+        std::optional<fast_ber::Integer<>>                                   integer5(integer1);
 
         integer3 = integer2;
         integer4 = integer3;
@@ -59,11 +59,11 @@ TEST_CASE("Integer: Encoding")
     std::array<uint8_t, 100> buffer       = {};
     std::array<uint8_t, 3>   expected     = {0x02, 0x01, 0x64};
     size_t                   encoded_size = fast_ber::encoded_length(i);
-    size_t                   size = fast_ber::encode(absl::Span<uint8_t>(buffer.data(), buffer.size()), i).length;
+    size_t                   size = fast_ber::encode(std::span<uint8_t>(buffer.data(), buffer.size()), i).length;
 
     REQUIRE(size == 3);
     REQUIRE(encoded_size == 3);
-    REQUIRE(absl::MakeSpan(buffer.data(), 3) == absl::MakeSpan(expected));
+    REQUIRE(std::equal(buffer.data(), buffer.data() + 3, expected.begin(), expected.end()));
 }
 
 TEST_CASE("Integer: Assign from raw")
@@ -71,7 +71,7 @@ TEST_CASE("Integer: Assign from raw")
     fast_ber::Integer<>    i(100);
     std::array<uint8_t, 4> test_data = {0x02, 0x02, 0x12, 0x34};
 
-    fast_ber::DecodeResult res = i.decode(fast_ber::BerView(absl::MakeSpan(test_data.data(), test_data.size())));
+    fast_ber::DecodeResult res = i.decode(fast_ber::BerView(std::span(test_data.data(), test_data.size())));
     REQUIRE(res.success);
     REQUIRE(i == 0x1234);
 }
@@ -102,8 +102,8 @@ TEST_CASE("Integer: Encode Decode")
 
     std::vector<uint8_t> buffer(100, 0x00);
 
-    bool enc_success = fast_ber::encode(absl::Span<uint8_t>(buffer), i1).success;
-    bool dec_success = fast_ber::decode(absl::Span<uint8_t>(buffer), i2).success;
+    bool enc_success = fast_ber::encode(std::span<uint8_t>(buffer), i1).success;
+    bool dec_success = fast_ber::decode(std::span<uint8_t>(buffer), i2).success;
 
     REQUIRE(enc_success);
     REQUIRE(dec_success);

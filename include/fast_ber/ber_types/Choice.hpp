@@ -1,8 +1,8 @@
 ﻿#pragma once
 
-#include "absl/container/inlined_vector.h"
-#include "absl/types/span.h"
-#include "absl/types/variant.h"
+#include <vector>
+#include <span>
+#include <variant>
 
 #include "fast_ber/ber_types/Class.hpp"
 #include "fast_ber/ber_types/Tag.hpp"
@@ -40,7 +40,7 @@ std::size_t encoded_length(size_t, ChoiceId<Identifiers...>)
 }
 
 template <typename... Identifiers>
-EncodeResult wrap_with_ber_header(absl::Span<uint8_t>, size_t, ChoiceId<Identifiers...>, size_t)
+EncodeResult wrap_with_ber_header(std::span<uint8_t>, size_t, ChoiceId<Identifiers...>, size_t)
 {
     assert(0);
     return {};
@@ -87,13 +87,13 @@ struct ChoiceImplementation
 template <typename... Types>
 struct ChoiceImplementation<Choices<Types...>, StorageMode::static_>
 {
-    using Type = absl::variant<Types...>;
+    using Type = std::variant<Types...>;
 
     template <size_t i>
-    using InPlaceIndex = absl::in_place_index_t<i>;
+    using InPlaceIndex = std::in_place_index_t<i>;
 
     template <typename T>
-    using InPlaceType = absl::in_place_type_t<T>;
+    using InPlaceType = std::in_place_type_t<T>;
 };
 
 template <typename... Types>
@@ -179,53 +179,53 @@ constexpr bool holds_alternative(const Choice<Choices<Types...>, Identifier, sto
 template <class T, typename... Types, typename Identifier>
 T& get(Choice<Choices<Types...>, Identifier, StorageMode::static_>& v)
 {
-    return absl::get<T>(v.base());
+    return std::get<T>(v.base());
 }
 
 template <class T, typename... Types, typename Identifier>
 T&& get(Choice<Choices<Types...>, Identifier, StorageMode::static_>&& v)
 {
-    return absl::get<T>(v.base());
+    return std::get<T>(v.base());
 }
 
 template <class T, typename... Types, typename Identifier>
 const T& get(const Choice<Choices<Types...>, Identifier, StorageMode::static_>& v)
 {
-    return absl::get<T>(v.base());
+    return std::get<T>(v.base());
 }
 
 template <class T, typename... Types, typename Identifier>
 const T&& get(const Choice<Choices<Types...>, Identifier, StorageMode::static_>&& v)
 {
-    return absl::get<T>(v.base());
+    return std::get<T>(v.base());
 }
 
 template <std::size_t I, typename... Types, typename Identifier>
 variant_alternative_t<I, Choice<Choices<Types...>, Identifier, StorageMode::static_>>&
 get(Choice<Choices<Types...>, Identifier, StorageMode::static_>& v)
 {
-    return absl::get<I>(v.base());
+    return std::get<I>(v.base());
 }
 
 template <std::size_t I, typename... Types, typename Identifier>
 variant_alternative_t<I, Choice<Choices<Types...>, Identifier, StorageMode::static_>>&&
 get(Choice<Choices<Types...>, Identifier, StorageMode::static_>&& v)
 {
-    return absl::get<I>(v.base());
+    return std::get<I>(v.base());
 }
 
 template <std::size_t I, typename... Types, typename Identifier>
 const variant_alternative_t<I, Choice<Choices<Types...>, Identifier, StorageMode::static_>>&
 get(const Choice<Choices<Types...>, Identifier, StorageMode::static_>& v)
 {
-    return absl::get<I>(v.base());
+    return std::get<I>(v.base());
 }
 
 template <std::size_t I, typename... Types, typename Identifier>
 const variant_alternative_t<I, Choice<Choices<Types...>, Identifier, StorageMode::static_>>&&
 get(const Choice<Choices<Types...>, Identifier, StorageMode::static_>&& v)
 {
-    return absl::get<I>(v.base());
+    return std::get<I>(v.base());
 }
 
 template <class T, typename... Types, typename Identifier>
@@ -279,7 +279,7 @@ constexpr typename std::add_pointer<
     variant_alternative_t<I, Choice<Choices<Types...>, Identifier, StorageMode::static_>>>::type
 get_if(Choice<Choices<Types...>, Identifier, StorageMode::static_>* v) noexcept
 {
-    return v ? absl::get_if<I>(&(v->base())) : nullptr;
+    return v ? std::get_if<I>(&(v->base())) : nullptr;
 }
 
 template <std::size_t I, typename... Types, typename Identifier>
@@ -287,21 +287,21 @@ constexpr typename std::add_pointer<
     const variant_alternative_t<I, Choice<Choices<Types...>, Identifier, StorageMode::static_>>>::type
 get_if(const Choice<Choices<Types...>, Identifier, StorageMode::static_>* v) noexcept
 {
-    return v ? absl::get_if<I>(&(v->base())) : nullptr;
+    return v ? std::get_if<I>(&(v->base())) : nullptr;
 }
 
 template <class T, typename... Types, typename Identifier>
 constexpr typename std::add_pointer<T>::type
 get_if(Choice<Choices<Types...>, Identifier, StorageMode::static_>* v) noexcept
 {
-    return v ? absl::get_if<T>(&(v->base())) : nullptr;
+    return v ? std::get_if<T>(&(v->base())) : nullptr;
 }
 
 template <class T, typename... Types, typename Identifier>
 constexpr typename std::add_pointer<const T>::type
 get_if(const Choice<Choices<Types...>, Identifier, StorageMode::static_>* v) noexcept
 {
-    return v ? absl::get_if<T>(&(v->base())) : nullptr;
+    return v ? std::get_if<T>(&(v->base())) : nullptr;
 }
 
 template <std::size_t I, typename... Types, typename Identifier>
@@ -362,7 +362,7 @@ struct Choice<Choices<Types...>, Identifier, storage>
         return *this;
     };
 
-    template <typename T, typename = absl::enable_if_t<!std::is_same<absl::decay_t<T>, Choice>::value &&
+    template <typename T, typename = std::enable_if_t<!std::is_same<std::decay_t<T>, Choice>::value &&
                                                        ExactlyOnce<AcceptedType<T&&>>::value &&
                                                        std::is_constructible<AcceptedType<T&&>, T&&>::value>>
     Choice(T&& t) noexcept(std::is_nothrow_constructible<AcceptedType<T&&>, T&&>::value)
@@ -372,7 +372,7 @@ struct Choice<Choices<Types...>, Identifier, storage>
     }
 
     template <typename T, typename... Args,
-              typename = absl::enable_if_t<ExactlyOnce<T>::value && std::is_constructible<T, Args&&...>::value>>
+              typename = std::enable_if_t<ExactlyOnce<T>::value && std::is_constructible<T, Args&&...>::value>>
     explicit Choice(in_place_type_t<T>, Args&&... args)
         : m_base(typename Implementation::template InPlaceType<T>{}, std::forward<Args>(args)...)
     {
@@ -380,7 +380,7 @@ struct Choice<Choices<Types...>, Identifier, storage>
     }
 
     template <typename T, typename U, typename... Args,
-              typename = absl::enable_if_t<ExactlyOnce<T>::value &&
+              typename = std::enable_if_t<ExactlyOnce<T>::value &&
                                            std::is_constructible<T, std::initializer_list<U>&, Args&&...>::value>>
     explicit Choice(in_place_type_t<T>, std::initializer_list<U> il, Args&&... args)
         : m_base(typename Implementation::template InPlaceType<T>{}, il, std::forward<Args>(args)...)
@@ -389,7 +389,7 @@ struct Choice<Choices<Types...>, Identifier, storage>
     }
 
     template <size_t i, typename... Args,
-              typename = absl::enable_if_t<std::is_constructible<ToType<i>, Args&&...>::value>>
+              typename = std::enable_if_t<std::is_constructible<ToType<i>, Args&&...>::value>>
     explicit Choice(in_place_index_t<i>, Args&&... args)
         : m_base(typename Implementation::template InPlaceIndex<i>{}, std::forward<Args>(args)...)
     {
@@ -398,7 +398,7 @@ struct Choice<Choices<Types...>, Identifier, storage>
 
     template <
         size_t i, typename U, typename... Args,
-        typename = absl::enable_if_t<std::is_constructible<ToType<i>, std::initializer_list<U>&, Args&&...>::value>>
+        typename = std::enable_if_t<std::is_constructible<ToType<i>, std::initializer_list<U>&, Args&&...>::value>>
     explicit Choice(in_place_index_t<i>, std::initializer_list<U> il, Args&&... args)
         : m_base(typename Implementation::template InPlaceIndex<i>{}, il, std::forward<Args>(args)...)
 
@@ -406,8 +406,8 @@ struct Choice<Choices<Types...>, Identifier, storage>
         assert(index() == i);
     }
 
-    template <typename T, typename = absl::enable_if_t<!std::is_same<absl::decay_t<T>, Choice>::value>>
-    absl::enable_if_t<ExactlyOnce<AcceptedType<T&&>>::value && std::is_constructible<AcceptedType<T&&>, T&&>::value &&
+    template <typename T, typename = std::enable_if_t<!std::is_same<std::decay_t<T>, Choice>::value>>
+    std::enable_if_t<ExactlyOnce<AcceptedType<T&&>>::value && std::is_constructible<AcceptedType<T&&>, T&&>::value &&
                           std::is_assignable<AcceptedType<T&&>&, T&&>::value,
                       Choice&>
     operator=(T&& t) noexcept(std::is_nothrow_assignable<AcceptedType<T&&>&, T&&>::value&&
@@ -418,14 +418,14 @@ struct Choice<Choices<Types...>, Identifier, storage>
     }
 
     template <typename T, typename... Args,
-              typename = absl::enable_if_t<std::is_constructible<T, Args...>::value && ExactlyOnce<T>::value>>
+              typename = std::enable_if_t<std::is_constructible<T, Args...>::value && ExactlyOnce<T>::value>>
     T& emplace(Args&&... args)
     {
         return m_base.template emplace<T, Args...>(std::forward<Args>(args)...);
     }
 
     template <typename T, typename U, typename... Args,
-              typename = absl::enable_if_t<std::is_constructible<T, std::initializer_list<U>&, Args...>::value &&
+              typename = std::enable_if_t<std::is_constructible<T, std::initializer_list<U>&, Args...>::value &&
                                            ExactlyOnce<T>::value>>
     T& emplace(std::initializer_list<U> il, Args&&... args)
     {
@@ -433,7 +433,7 @@ struct Choice<Choices<Types...>, Identifier, storage>
     }
 
     template <size_t i, typename... Args>
-    absl::enable_if_t<std::is_constructible<variant_alternative_t<i, Choice>, Args...>::value,
+    std::enable_if_t<std::is_constructible<variant_alternative_t<i, Choice>, Args...>::value,
                       variant_alternative_t<i, Choice>&>
     emplace(Args&&... args)
     {
@@ -441,7 +441,7 @@ struct Choice<Choices<Types...>, Identifier, storage>
     }
 
     template <size_t i, typename U, typename... Args>
-    absl::enable_if_t<
+    std::enable_if_t<
         std::is_constructible<variant_alternative_t<i, Choice>, std::initializer_list<U>&, Args...>::value,
         variant_alternative_t<i, Choice>&>
     emplace(std::initializer_list<U> il, Args&&... args)
@@ -456,7 +456,7 @@ struct Choice<Choices<Types...>, Identifier, storage>
     void swap(Choice& rhs) noexcept { return m_base.swap(rhs.base()); }
 
     size_t       encoded_length_old() const noexcept;
-    EncodeResult encode_old(absl::Span<uint8_t> buffer) const noexcept;
+    EncodeResult encode_old(std::span<uint8_t> buffer) const noexcept;
     DecodeResult decode_old(BerView input) noexcept;
 
     using AsnId = Identifier;
@@ -516,9 +516,9 @@ auto visit(Visitor&& vis, const Choice<Choices<Variants...>, Identifier, Storage
 
 template <typename Visitor, typename... Variants, typename Identifier>
 auto visit(Visitor&& vis, const Choice<Choices<Variants...>, Identifier, StorageMode::static_>& variant)
-    -> decltype(absl::visit(vis, variant.base()))
+    -> decltype(std::visit(vis, variant.base()))
 {
-    return absl::visit(vis, variant.base());
+    return std::visit(vis, variant.base());
 }
 
 struct LengthVisitor
@@ -531,7 +531,7 @@ struct LengthVisitor
 };
 
 template <typename... Variants, typename Identifier, StorageMode storage,
-          absl::enable_if_t<!IsChoiceId<Identifier>::value, int> = 0>
+          std::enable_if_t<!IsChoiceId<Identifier>::value, int> = 0>
 size_t encoded_length_impl(const Choice<Choices<Variants...>, Identifier, storage>& choice) noexcept
 {
     LengthVisitor visit;
@@ -539,7 +539,7 @@ size_t encoded_length_impl(const Choice<Choices<Variants...>, Identifier, storag
 }
 
 template <typename... Variants, typename Identifier, StorageMode storage,
-          absl::enable_if_t<IsChoiceId<Identifier>::value, int> = 0>
+          std::enable_if_t<IsChoiceId<Identifier>::value, int> = 0>
 size_t encoded_length_impl(const Choice<Choices<Variants...>, Identifier, storage>& choice) noexcept
 {
     LengthVisitor visit;
@@ -554,7 +554,7 @@ size_t Choice<Choices<Variants...>, Identifier, storage>::encoded_length_old() c
 
 template <size_t index, size_t max_depth, typename... Variants, typename Identifier, StorageMode storage,
           typename std::enable_if<(!(index < max_depth)), int>::type = 0>
-EncodeResult encode_if(absl::Span<uint8_t>, const Choice<Choices<Variants...>, Identifier, storage>&) noexcept
+EncodeResult encode_if(std::span<uint8_t>, const Choice<Choices<Variants...>, Identifier, storage>&) noexcept
 {
     // No substitutions found, fail
     return EncodeResult{false, 0};
@@ -562,7 +562,7 @@ EncodeResult encode_if(absl::Span<uint8_t>, const Choice<Choices<Variants...>, I
 
 template <size_t index, size_t max_depth, typename... Variants, typename Identifier, StorageMode storage,
           typename std::enable_if<(index < max_depth), int>::type = 0>
-EncodeResult encode_if(absl::Span<uint8_t>                                      buffer,
+EncodeResult encode_if(std::span<uint8_t>                                      buffer,
                        const Choice<Choices<Variants...>, Identifier, storage>& choice) noexcept
 {
     if (choice.index() == index)
@@ -579,7 +579,7 @@ EncodeResult encode_if(absl::Span<uint8_t>                                      
 }
 
 template <typename... Variants, typename Identifier, StorageMode storage>
-EncodeResult encode_choice(absl::Span<uint8_t>                                      buffer,
+EncodeResult encode_choice(std::span<uint8_t>                                      buffer,
                            const Choice<Choices<Variants...>, Identifier, storage>& choice) noexcept
 {
     constexpr size_t depth = sizeof...(Variants);
@@ -587,17 +587,17 @@ EncodeResult encode_choice(absl::Span<uint8_t>                                  
 }
 
 template <typename... Variants, typename Identifier, StorageMode storage,
-          absl::enable_if_t<!IsChoiceId<Identifier>::value, int> = 0>
-EncodeResult encode_impl(absl::Span<uint8_t>                                      buffer,
+          std::enable_if_t<!IsChoiceId<Identifier>::value, int> = 0>
+EncodeResult encode_impl(std::span<uint8_t>                                      buffer,
                          const Choice<Choices<Variants...>, Identifier, storage>& choice) noexcept
 {
     constexpr size_t header_length_guess = encoded_length(0, Identifier{});
     auto             child_buffer        = buffer;
-    if (buffer.length() < header_length_guess)
+    if (buffer.size() < header_length_guess)
     {
         return EncodeResult{false, 0};
     }
-    child_buffer.remove_prefix(header_length_guess);
+    child_buffer = child_buffer.subspan(header_length_guess);
 
     EncodeResult inner_encode_result = encode_choice(child_buffer, choice);
     if (!inner_encode_result.success)
@@ -609,21 +609,21 @@ EncodeResult encode_impl(absl::Span<uint8_t>                                    
 }
 
 template <typename... Variants, typename Identifier, StorageMode storage,
-          absl::enable_if_t<IsChoiceId<Identifier>::value, int> = 0>
-EncodeResult encode_impl(absl::Span<uint8_t>                                      buffer,
+          std::enable_if_t<IsChoiceId<Identifier>::value, int> = 0>
+EncodeResult encode_impl(std::span<uint8_t>                                      buffer,
                          const Choice<Choices<Variants...>, Identifier, storage>& choice) noexcept
 {
     return encode_choice(buffer, choice);
 }
 
 template <typename... Variants, typename Identifier, StorageMode storage>
-EncodeResult Choice<Choices<Variants...>, Identifier, storage>::encode_old(absl::Span<uint8_t> buffer) const noexcept
+EncodeResult Choice<Choices<Variants...>, Identifier, storage>::encode_old(std::span<uint8_t> buffer) const noexcept
 {
     return encode_impl(buffer, *this);
 }
 
 template <int index, int max_depth, typename... Variants, typename Identifier, StorageMode storage,
-          absl::enable_if_t<(!(index < max_depth)), int> = 0>
+          std::enable_if_t<(!(index < max_depth)), int> = 0>
 DecodeResult decode_if(BerView, Choice<Choices<Variants...>, Identifier, storage>&) noexcept
 {
     // No substitutions found, fail
@@ -631,7 +631,7 @@ DecodeResult decode_if(BerView, Choice<Choices<Variants...>, Identifier, storage
 }
 
 template <size_t index, size_t max_depth, typename ID, typename... Variants, StorageMode storage,
-          absl::enable_if_t<(index < max_depth), int> = 0>
+          std::enable_if_t<(index < max_depth), int> = 0>
 DecodeResult decode_if(BerView input, Choice<Choices<Variants...>, ID, storage>& output) noexcept
 {
     using T = typename fast_ber::variant_alternative<index, Choice<Choices<Variants...>, ID>>::type;
@@ -648,7 +648,7 @@ DecodeResult decode_if(BerView input, Choice<Choices<Variants...>, ID, storage>&
 }
 
 template <typename... Variants, typename Identifier, StorageMode storage,
-          absl::enable_if_t<IsChoiceId<Identifier>::value, int> = 0>
+          std::enable_if_t<IsChoiceId<Identifier>::value, int> = 0>
 DecodeResult decode_impl(BerView input, Choice<Choices<Variants...>, Identifier, storage>& output) noexcept
 {
     if (!input.is_valid())
@@ -661,7 +661,7 @@ DecodeResult decode_impl(BerView input, Choice<Choices<Variants...>, Identifier,
 }
 
 template <typename... Variants, typename Identifier, StorageMode storage,
-          absl::enable_if_t<!IsChoiceId<Identifier>::value, int> = 0>
+          std::enable_if_t<!IsChoiceId<Identifier>::value, int> = 0>
 DecodeResult decode_impl(BerView input, Choice<Choices<Variants...>, Identifier, storage>& output) noexcept
 {
     if (!has_correct_header(input, Identifier{}, Construction::constructed))

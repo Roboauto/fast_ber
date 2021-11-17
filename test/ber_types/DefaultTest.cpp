@@ -7,7 +7,7 @@
 
 struct StringDefault
 {
-    constexpr static absl::string_view get_value() noexcept { return "Hello"; }
+    constexpr static std::string_view get_value() noexcept { return "Hello"; }
 };
 
 struct IntDefault
@@ -57,8 +57,8 @@ TEST_CASE("Default: Encode default")
     size_t encoded_length_1 = fast_ber::encoded_length(default_str);
     size_t encoded_length_2 = fast_ber::encoded_length(default_int);
 
-    fast_ber::EncodeResult encode_res_1 = fast_ber::encode(absl::Span<uint8_t>(buffer), default_str);
-    fast_ber::EncodeResult encode_res_2 = fast_ber::encode(absl::Span<uint8_t>(buffer), default_int);
+    fast_ber::EncodeResult encode_res_1 = fast_ber::encode(std::span<uint8_t>(buffer), default_str);
+    fast_ber::EncodeResult encode_res_2 = fast_ber::encode(std::span<uint8_t>(buffer), default_int);
 
     CHECK(encoded_length_1 == 0);
     CHECK(encoded_length_2 == 0);
@@ -84,11 +84,11 @@ TEST_CASE("Default: Encode non default")
     size_t encoded_length_3 = fast_ber::encoded_length(fast_ber::OctetString<>("racoon"));
     size_t encoded_length_4 = fast_ber::encoded_length(fast_ber::Integer<>(-20));
 
-    fast_ber::EncodeResult encode_res_1 = fast_ber::encode(absl::Span<uint8_t>(buffer1), default_str);
-    fast_ber::EncodeResult encode_res_2 = fast_ber::encode(absl::Span<uint8_t>(buffer2), default_int);
+    fast_ber::EncodeResult encode_res_1 = fast_ber::encode(std::span<uint8_t>(buffer1), default_str);
+    fast_ber::EncodeResult encode_res_2 = fast_ber::encode(std::span<uint8_t>(buffer2), default_int);
     fast_ber::EncodeResult encode_res_3 =
-        fast_ber::encode(absl::Span<uint8_t>(buffer3), fast_ber::OctetString<>("racoon"));
-    fast_ber::EncodeResult encode_res_4 = fast_ber::encode(absl::Span<uint8_t>(buffer4), fast_ber::Integer<>(-20));
+        fast_ber::encode(std::span<uint8_t>(buffer3), fast_ber::OctetString<>("racoon"));
+    fast_ber::EncodeResult encode_res_4 = fast_ber::encode(std::span<uint8_t>(buffer4), fast_ber::Integer<>(-20));
 
     CHECK(encoded_length_1 == encoded_length_3);
     CHECK(encoded_length_2 == encoded_length_4);
@@ -108,8 +108,8 @@ TEST_CASE("Default: Decode default")
     fast_ber::Default<fast_ber::Integer<>, IntDefault>        default_int;
     std::array<uint8_t, 100>                                  buffer{};
 
-    fast_ber::DecodeResult decode_res_1 = fast_ber::decode(absl::Span<uint8_t>(buffer.data(), 0), default_str);
-    fast_ber::DecodeResult decode_res_2 = fast_ber::decode(absl::Span<uint8_t>(buffer.data(), 0), default_int);
+    fast_ber::DecodeResult decode_res_1 = fast_ber::decode(std::span<uint8_t>(buffer.data(), 0), default_str);
+    fast_ber::DecodeResult decode_res_2 = fast_ber::decode(std::span<uint8_t>(buffer.data(), 0), default_int);
 
     CHECK(decode_res_1.success);
     CHECK(decode_res_2.success);
@@ -124,11 +124,11 @@ TEST_CASE("Default: Decode non default")
     fast_ber::Default<fast_ber::Integer<>, IntDefault>        default_int;
     std::array<uint8_t, 100>                                  buffer{};
 
-    fast_ber::OctetString<>("Unexpected string!").encode(absl::Span<uint8_t>(buffer));
-    fast_ber::DecodeResult decode_res_1 = fast_ber::decode(absl::Span<uint8_t>(buffer), default_str);
+    fast_ber::OctetString<>("Unexpected string!").encode(std::span<uint8_t>(buffer));
+    fast_ber::DecodeResult decode_res_1 = fast_ber::decode(std::span<uint8_t>(buffer), default_str);
 
-    fast_ber::Integer<>(-99999999).encode(absl::Span<uint8_t>(buffer));
-    fast_ber::DecodeResult decode_res_2 = fast_ber::decode(absl::Span<uint8_t>(buffer), default_int);
+    fast_ber::Integer<>(-99999999).encode(std::span<uint8_t>(buffer));
+    fast_ber::DecodeResult decode_res_2 = fast_ber::decode(std::span<uint8_t>(buffer), default_int);
 
     CHECK(decode_res_1.success);
     CHECK(decode_res_2.success);

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "absl/types/span.h"
+#include <span>
 
 #include "fast_ber/ber_types/Class.hpp"
 #include "fast_ber/ber_types/Construction.hpp"
@@ -31,7 +31,7 @@ class Boolean
     // Implicit conversion to bool
                               operator bool() const noexcept { return value(); }
     bool                      value() const noexcept { return static_cast<bool>(m_data.back()); }
-    absl::Span<const uint8_t> ber() const { return absl::Span<const uint8_t>(m_data); }
+    std::span<const uint8_t> ber() const { return std::span<const uint8_t>(m_data); }
 
     Boolean& operator=(bool rhs) noexcept;
     template <typename Identifier2>
@@ -42,7 +42,7 @@ class Boolean
     void assign(const Boolean<Identifier2>& rhs) noexcept;
 
     constexpr static size_t encoded_length() noexcept;
-    EncodeResult            encode(absl::Span<uint8_t> buffer) const noexcept;
+    EncodeResult            encode(std::span<uint8_t> buffer) const noexcept;
     DecodeResult            decode(BerView input) noexcept;
 
     using AsnId = Identifier;
@@ -96,7 +96,7 @@ constexpr size_t Boolean<Identifier>::encoded_length() noexcept
 }
 
 template <typename Identifier>
-EncodeResult Boolean<Identifier>::encode(absl::Span<uint8_t> output) const noexcept
+EncodeResult Boolean<Identifier>::encode(std::span<uint8_t> output) const noexcept
 {
     if (output.size() < this->ber().size())
     {

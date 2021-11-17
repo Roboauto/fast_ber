@@ -4,8 +4,8 @@
 #include "fast_ber/util/EncodeHelpers.hpp"
 #include "fast_ber/util/FixedIdBerContainer.hpp"
 
-#include "absl/strings/string_view.h"
-#include "absl/time/time.h"
+#include <boost/date_time.hpp>
+#include <boost/locale.hpp>
 
 namespace fast_ber
 {
@@ -27,18 +27,18 @@ class GeneralizedTime
         local
     };
 
-    void set_time(const absl::CivilSecond& cs);
-    void set_time(const absl::Time& time);
-    void set_time(const absl::Time& time, int timezone_offset_minutes);
+    void set_time(const boost::local_time::local_date_time& cs);
+    void set_time(const boost::posix_time::ptime& time);
+    void set_time(const boost::posix_time::ptime& time, int timezone_offset_minutes);
 
-    absl::Time  time() const;
+    boost::posix_time::ptime  time() const;
     std::string string() const;
     TimeFormat  format() const;
 
-    GeneralizedTime() noexcept { set_time(absl::Time()); }
+    GeneralizedTime() noexcept { set_time(boost::posix_time::ptime()); }
     GeneralizedTime(const GeneralizedTime&)     = default;
     GeneralizedTime(GeneralizedTime&&) noexcept = default;
-    GeneralizedTime(const absl::Time& time) { set_time(time); }
+    GeneralizedTime(const boost::posix_time::ptime& time) { set_time(time); }
     explicit GeneralizedTime(BerView view) { decode(view); }
     ~GeneralizedTime() noexcept = default;
 
@@ -46,7 +46,7 @@ class GeneralizedTime
     GeneralizedTime& operator=(GeneralizedTime&&) noexcept = default;
 
     size_t       encoded_length() const noexcept;
-    EncodeResult encode(absl::Span<uint8_t> buffer) const noexcept;
+    EncodeResult encode(std::span<uint8_t> buffer) const noexcept;
     DecodeResult decode(BerView buffer) noexcept;
 
     using AsnId = Identifier;
@@ -68,28 +68,46 @@ bool operator!=(const GeneralizedTime<Identifier>& lhs, const GeneralizedTime<Id
 }
 
 template <typename Identifier>
-void GeneralizedTime<Identifier>::set_time(const absl::Time& time)
+void GeneralizedTime<Identifier>::set_time(const boost::posix_time::ptime& time)
 {
-    std::string time_str = absl::FormatTime(g_universal_time_format, time, absl::UTCTimeZone());
+    std::ostringstream       ss;
+    
+    // assumes std::cout's locale has been set appropriately for the entire app
+    ss.imbue(std::locale(std::cout.getloc(), new boost::posix_time::time_facet(g_universal_time_format.c_str())));
+    ss << time;
+
+    std::string time_str = ss.str();
 
     m_contents.assign_content(
-        absl::Span<const uint8_t>(reinterpret_cast<const uint8_t*>(time_str.data()), time_str.length()));
+        std::span<const uint8_t>(reinterpret_cast<const uint8_t*>(time_str.data()), time_str.length()));
 }
 
 template <typename Identifier>
-void GeneralizedTime<Identifier>::set_time(const absl::CivilSecond& cs)
+void GeneralizedTime<Identifier>::set_time(const boost::local_time::local_date_time& cs)
 {
-    std::string time_str =
-        absl::FormatTime(g_local_time_format, absl::FromCivil(cs, absl::LocalTimeZone()), absl::LocalTimeZone());
+    std::ostringstream ss;
+
+    // assumes std::cout's locale has been set appropriately for the entire app
+    ss.imbue(std::locale(std::cout.getloc(), new boost::posix_time::time_facet(g_local_time_format)));
+    ss << cs.local_time();
+
+    std::string time_str = ss.str();
 
     m_contents.assign_content(
-        absl::Span<const uint8_t>(reinterpret_cast<const uint8_t*>(time_str.data()), time_str.length()));
+        std::span<const uint8_t>(reinterpret_cast<const uint8_t*>(time_str.data()), time_str.length()));
 }
 
 template <typename Identifier>
-void GeneralizedTime<Identifier>::set_time(const absl::Time& time, int timezone_offset_minutes)
+void GeneralizedTime<Identifier>::set_time(const boost::posix_time::ptime& time, int timezone_offset_minutes)
 {
-    std::string time_str = absl::FormatTime(g_universal_time_with_time_zone_format, time, absl::UTCTimeZone());
+    std::ostringstream ss;
+
+    // assumes std::cout's locale has been set appropriately for the entire app
+    ss.imbue(std::locale(std::cout.getloc(), new boost::posix_time::time_facet(g_universal_time_with_time_zone_format)));
+    ss << time;
+
+    std::string time_str = ss.str();
+
 
     std::string timezone_extension = std::string(5, '\0');
     snprintf(&timezone_extension[0], timezone_extension.length() + 1,
@@ -99,7 +117,7 @@ void GeneralizedTime<Identifier>::set_time(const absl::Time& time, int timezone_
     time_str += timezone_extension;
 
     m_contents.assign_content(
-        absl::Span<const uint8_t>(reinterpret_cast<const uint8_t*>(time_str.data()), time_str.length()));
+        std::span<const uint8_t>(reinterpret_cast<const uint8_t*>(time_str.data()), time_str.length()));
 }
 
 template <typename Identifier>
@@ -121,34 +139,31 @@ typename GeneralizedTime<Identifier>::TimeFormat GeneralizedTime<Identifier>::fo
 }
 
 template <typename Identifier>
-absl::Time GeneralizedTime<Identifier>::time() const
+boost::posix_time::ptime GeneralizedTime<Identifier>::time() const
 {
     thread_local std::string s_error_string;
-    absl::Time               time;
+    boost::posix_time::ptime               time;
     const TimeFormat         frmt = format();
 
     if (frmt == TimeFormat::universal)
     {
-        if (!absl::ParseTime(g_universal_time_format, this->string(), absl::UTCTimeZone(), &time, &s_error_string))
-        {
-            throw std::runtime_error("Failed to parse time: " + s_error_string);
-        }
+        std::istringstream  iss(this->string());
+        iss.imbue(std::locale(std::locale::classic(), new boost::posix_time::time_input_facet(g_universal_time_format)));
+        iss >> time;
     }
     else if (frmt == TimeFormat::universal_with_timezone)
     {
-        const auto time_str = this->string();
-        if (!absl::ParseTime(g_universal_time_with_time_zone_format, time_str.substr(.0, time_str.length() - 5),
-                             absl::UTCTimeZone(), &time, &s_error_string))
-        {
-            throw std::runtime_error("Failed to parse time: " + s_error_string);
-        }
+        const auto& time_str = this->string();
+
+        std::istringstream iss(time_str.substr(0, time_str.length() - 5));
+        iss.imbue(std::locale(std::locale::classic(), new boost::posix_time::time_input_facet(g_universal_time_with_time_zone_format)));
+        iss >> time;
     }
     else if (frmt == TimeFormat::local)
     {
-        if (!absl::ParseTime(g_local_time_format, this->string(), absl::UTCTimeZone(), &time, &s_error_string))
-        {
-            throw std::runtime_error("Failed to parse time: " + s_error_string);
-        }
+        std::istringstream iss(this->string());
+        iss.imbue(std::locale(std::locale::classic(), new boost::posix_time::time_input_facet(g_local_time_format)));
+        iss >> time;
     }
     return time;
 }
@@ -162,11 +177,11 @@ std::string GeneralizedTime<Identifier>::string() const
 template <typename Identifier>
 size_t GeneralizedTime<Identifier>::encoded_length() const noexcept
 {
-    return this->m_contents.ber().length();
+    return this->m_contents.ber().size();
 }
 
 template <typename Identifier>
-EncodeResult GeneralizedTime<Identifier>::encode(absl::Span<uint8_t> output) const noexcept
+EncodeResult GeneralizedTime<Identifier>::encode(std::span<uint8_t> output) const noexcept
 {
     return this->m_contents.encode(output);
 }

@@ -41,11 +41,11 @@ std::vector<Dependency> depends_on(const SequenceType& sequence)
         depends.insert(depends.end(), additional.begin(), additional.end());
 
         if (component.default_value &&
-            absl::holds_alternative<DefinedValue>(component.default_value->value_selection) &&
+            std::holds_alternative<DefinedValue>(component.default_value->value_selection) &&
             !is_enumerated(component.named_type.type))
         {
-            const DefinedValue& defined = absl::get<DefinedValue>(component.default_value->value_selection);
-            depends.push_back(Dependency{defined.reference, absl::nullopt});
+            const DefinedValue& defined = std::get<DefinedValue>(component.default_value->value_selection);
+            depends.push_back(Dependency{defined.reference, std::nullopt});
         }
     }
     return depends;
@@ -103,13 +103,13 @@ struct DependsOnHelper
     }
 };
 static DependsOnHelper  depends_on_helper;
-std::vector<Dependency> depends_on(const BuiltinType& type) { return absl::visit(depends_on_helper, type); }
-std::vector<Dependency> depends_on(const Type& type) { return absl::visit(depends_on_helper, type); }
+std::vector<Dependency> depends_on(const BuiltinType& type) { return std::visit(depends_on_helper, type); }
+std::vector<Dependency> depends_on(const Type& type) { return std::visit(depends_on_helper, type); }
 std::vector<Dependency> depends_on(const Value& value)
 {
-    if (absl::holds_alternative<DefinedValue>(value.value_selection))
+    if (std::holds_alternative<DefinedValue>(value.value_selection))
     {
-        return {{absl::get<DefinedValue>(value.value_selection).reference, {}}};
+        return {{std::get<DefinedValue>(value.value_selection).reference, {}}};
     };
     return {};
 }
@@ -117,14 +117,14 @@ std::vector<Dependency> depends_on(const Value& value)
 std::vector<Dependency> dependencies(const Type& type) { return depends_on(type); }
 std::vector<Dependency> dependencies(const Assignment& assignment)
 {
-    if (absl::holds_alternative<TypeAssignment>(assignment.specific))
+    if (std::holds_alternative<TypeAssignment>(assignment.specific))
     {
-        return depends_on(absl::get<TypeAssignment>(assignment.specific).type);
+        return depends_on(std::get<TypeAssignment>(assignment.specific).type);
     }
-    else if (absl::holds_alternative<ValueAssignment>(assignment.specific))
+    else if (std::holds_alternative<ValueAssignment>(assignment.specific))
     {
-        auto type_depends  = depends_on(absl::get<ValueAssignment>(assignment.specific).type);
-        auto value_depends = depends_on(absl::get<ValueAssignment>(assignment.specific).value);
+        auto type_depends  = depends_on(std::get<ValueAssignment>(assignment.specific).type);
+        auto value_depends = depends_on(std::get<ValueAssignment>(assignment.specific).value);
 
         type_depends.insert(type_depends.end(), value_depends.begin(), value_depends.end());
         return type_depends;
@@ -136,7 +136,7 @@ std::vector<Dependency> dependencies(const Assignment& assignment)
 // Limited to single module
 void get_dependencies_recursive(const std::string& type_name, const std::string& module_name,
                                 const std::unordered_map<std::string, Assignment>& assignment_map,
-                                absl::flat_hash_set<Dependency>&                   depends)
+                                std::unordered_set<Dependency>&                   depends)
 {
     if (assignment_map.count(type_name) == 0)
     {

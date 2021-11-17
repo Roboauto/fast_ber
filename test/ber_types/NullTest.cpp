@@ -8,10 +8,11 @@ TEST_CASE("Null: Encoding")
     std::array<uint8_t, 100> buffer   = {};
     std::array<uint8_t, 2>   expected = {0x05, 0x00};
 
-    size_t size = fast_ber::encode(absl::Span<uint8_t>(buffer.data(), buffer.size()), null).length;
+    size_t size = fast_ber::encode(std::span<uint8_t>(buffer.data(), buffer.size()), null).length;
 
     REQUIRE(size == 2);
-    REQUIRE(absl::MakeSpan(buffer.data(), 2) == absl::MakeSpan(expected));
+    auto tmp = std::span(buffer.data(), 2);
+    REQUIRE(std::equal(tmp.begin(), tmp.end(), expected.begin(), expected.end()));
 }
 
 TEST_CASE("Null: Assign from raw")
@@ -31,7 +32,7 @@ TEST_CASE("Null: Double id")
     std::array<uint8_t, 10> buffer{};
 
     constexpr size_t       encoded_length = fast_ber::encoded_length(null);
-    fast_ber::EncodeResult encode_result  = fast_ber::encode(absl::Span<uint8_t>(buffer), null);
+    fast_ber::EncodeResult encode_result  = fast_ber::encode(std::span<uint8_t>(buffer), null);
     fast_ber::DecodeResult decode_result  = fast_ber::decode(buffer, null);
 
     REQUIRE(encode_result.success);

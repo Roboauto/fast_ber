@@ -4,7 +4,7 @@
 #include "fast_ber/util/Definitions.hpp"
 #include "fast_ber/util/EncodeHelpers.hpp"
 
-#include "absl/container/inlined_vector.h"
+#include <vector>
 
 #include <iosfwd>
 #include <numeric>
@@ -13,18 +13,16 @@
 namespace fast_ber
 {
 
-constexpr const size_t default_inlined_size = 5;
-
 template <typename T, StorageMode storage>
 struct SequenceOfImplementation
 {
-    using Type = absl::InlinedVector<T, default_inlined_size>;
+    using Type = std::vector<T>;
 };
 
 template <typename T>
 struct SequenceOfImplementation<T, StorageMode::small_buffer_optimised>
 {
-    using Type = absl::InlinedVector<T, default_inlined_size>;
+    using Type = std::vector<T>;
 };
 
 template <typename T>
@@ -55,7 +53,7 @@ struct SequenceOf : public SequenceOfImplementation<T, s>::Type
     SequenceOf& operator                     =(SequenceOf&&) noexcept;
 
     size_t       encoded_length() const noexcept;
-    EncodeResult encode(absl::Span<uint8_t> buffer) const noexcept;
+    EncodeResult encode(std::span<uint8_t> buffer) const noexcept;
     DecodeResult decode(BerView input) noexcept;
 
     using AsnId = I;
@@ -94,16 +92,16 @@ size_t SequenceOf<T, I, s>::encoded_length() const noexcept
 }
 
 template <typename T, typename I, StorageMode s>
-EncodeResult SequenceOf<T, I, s>::encode(const absl::Span<uint8_t> buffer) const noexcept
+EncodeResult SequenceOf<T, I, s>::encode(const std::span<uint8_t> buffer) const noexcept
 {
     constexpr size_t header_length_guess = fast_ber::encoded_length(0, I{});
     auto             content_buffer      = buffer;
     size_t           combined_length     = 0;
-    if (content_buffer.length() < header_length_guess)
+    if (content_buffer.size() < header_length_guess)
     {
         return EncodeResult{false, 0};
     }
-    content_buffer.remove_prefix(header_length_guess);
+    content_buffer = content_buffer.subspan(header_length_guess);
 
     for (const T& element : *this)
     {
@@ -113,7 +111,7 @@ EncodeResult SequenceOf<T, I, s>::encode(const absl::Span<uint8_t> buffer) const
             return {false, 0};
         }
         combined_length += element_encode_result.length;
-        content_buffer.remove_prefix(element_encode_result.length);
+        content_buffer = content_buffer.subspan(element_encode_result.length);
     }
 
     return wrap_with_ber_header(buffer, combined_length, I{}, header_length_guess);

@@ -1,5 +1,7 @@
 #include "fast_ber/compiler/ResolveType.hpp"
 
+#include <assert.h>
+
 Module& find_module(Asn1Tree& tree, const std::string& module_reference)
 {
     for (Module& module : tree.modules)
@@ -176,15 +178,15 @@ NamedTypeAndModule resolve_type_and_module(const Asn1Tree& tree, const std::stri
             {
                 module = *defined.module_reference;
             }
-            defined = absl::get<DefinedType>(type(assignment));
+            defined = std::get<DefinedType>(type(assignment));
         }
         else if (is_prefixed(type(assignment)))
         {
-            PrefixedType prefixed = absl::get<PrefixedType>(absl::get<BuiltinType>(type(assignment)));
+            PrefixedType prefixed = std::get<PrefixedType>(std::get<BuiltinType>(type(assignment)));
             if (is_defined(prefixed.tagged_type->type))
             {
                 NamedTypeAndModule const& inner = resolve_type_and_module(
-                    tree, current_module_reference, absl::get<DefinedType>(prefixed.tagged_type->type));
+                    tree, current_module_reference, std::get<DefinedType>(prefixed.tagged_type->type));
                 prefixed.tagged_type->type = inner.type.type;
                 return {NamedType{assignment.name, prefixed}, inner.module};
             }
@@ -205,14 +207,14 @@ NamedTypeAndModule resolve_type_and_module(const Asn1Tree& tree, const std::stri
 {
     if (is_defined(type_info.type))
     {
-        return resolve_type_and_module(tree, current_module_reference, absl::get<DefinedType>(type_info.type));
+        return resolve_type_and_module(tree, current_module_reference, std::get<DefinedType>(type_info.type));
     }
     if (is_prefixed(type_info.type))
     {
         return resolve_type_and_module(
             tree, current_module_reference,
             NamedType{type_info.name,
-                      absl::get<PrefixedType>(absl::get<BuiltinType>(type_info.type)).tagged_type->type});
+                      std::get<PrefixedType>(std::get<BuiltinType>(type_info.type)).tagged_type->type});
     }
 
     return {type_info, find_module(tree, current_module_reference)};
@@ -262,27 +264,27 @@ bool exists(const Asn1Tree& tree, const std::string& current_module_reference, c
     return exists(tree, module_reference, defined.type_reference);
 }
 
-bool is_type(const Assignment& assignment) { return absl::holds_alternative<TypeAssignment>(assignment.specific); }
-bool is_value(const Assignment& assignment) { return absl::holds_alternative<ValueAssignment>(assignment.specific); }
+bool is_type(const Assignment& assignment) { return std::holds_alternative<TypeAssignment>(assignment.specific); }
+bool is_value(const Assignment& assignment) { return std::holds_alternative<ValueAssignment>(assignment.specific); }
 bool is_object_class(const Assignment& assignment)
 {
-    return absl::holds_alternative<ObjectClassAssignment>(assignment.specific) ||
-           absl::holds_alternative<ObjectSetAssignment>(assignment.specific);
+    return std::holds_alternative<ObjectClassAssignment>(assignment.specific) ||
+           std::holds_alternative<ObjectSetAssignment>(assignment.specific);
 }
 
-Type&       type(Assignment& assignemnt) { return absl::get<TypeAssignment>(assignemnt.specific).type; }
-const Type& type(const Assignment& assignemnt) { return absl::get<TypeAssignment>(assignemnt.specific).type; }
+Type&       type(Assignment& assignemnt) { return std::get<TypeAssignment>(assignemnt.specific).type; }
+const Type& type(const Assignment& assignemnt) { return std::get<TypeAssignment>(assignemnt.specific).type; }
 
-ValueAssignment&       value(Assignment& assignemnt) { return absl::get<ValueAssignment>(assignemnt.specific); }
-const ValueAssignment& value(const Assignment& assignemnt) { return absl::get<ValueAssignment>(assignemnt.specific); }
+ValueAssignment&       value(Assignment& assignemnt) { return std::get<ValueAssignment>(assignemnt.specific); }
+const ValueAssignment& value(const Assignment& assignemnt) { return std::get<ValueAssignment>(assignemnt.specific); }
 
 ObjectClassAssignment& object_class(Assignment& assignemnt)
 {
-    return absl::get<ObjectClassAssignment>(assignemnt.specific);
+    return std::get<ObjectClassAssignment>(assignemnt.specific);
 }
 const ObjectClassAssignment& object_class(const Assignment& assignemnt)
 {
-    return absl::get<ObjectClassAssignment>(assignemnt.specific);
+    return std::get<ObjectClassAssignment>(assignemnt.specific);
 }
 
 bool is_a_parameter(const std::string& reference, const std::vector<Parameter>& parameters)

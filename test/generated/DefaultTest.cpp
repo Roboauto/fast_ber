@@ -29,7 +29,7 @@ TEST_CASE("Default: Encode")
     std::array<std::uint8_t, 10>            buffer{};
     fast_ber::Defaults::SequenceWithDefault s;
 
-    fast_ber::EncodeResult encode_result = s.encode(absl::Span<uint8_t>(buffer));
+    fast_ber::EncodeResult encode_result = s.encode(std::span<uint8_t>(buffer));
 
     REQUIRE(encode_result.success);
     REQUIRE(encode_result.length == 2);
@@ -47,7 +47,7 @@ TEST_CASE("Default: Decode")
     REQUIRE(!s.colour.is_default());
     REQUIRE(!s.real.is_default());
 
-    fast_ber::DecodeResult decode_result = fast_ber::decode(absl::Span<const uint8_t>(buffer), s);
+    fast_ber::DecodeResult decode_result = fast_ber::decode(std::span<const uint8_t>(buffer), s);
 
     REQUIRE(decode_result.success);
 

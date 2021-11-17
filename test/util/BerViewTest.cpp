@@ -20,8 +20,10 @@ TEST_CASE("BerView: Sample data")
     REQUIRE(view.class_() == fast_ber::Class::universal);
     REQUIRE(view.tag() == 16);
 
-    REQUIRE(view.ber() == sample_packet);
-    REQUIRE(view.content() == absl::MakeSpan(sample_packet.data() + 2, sample_packet.size() - 2));
+    auto ber = view.ber();
+    REQUIRE(std::equal(ber.begin(), ber.end(), sample_packet.begin(), sample_packet.end()));
+    auto content = view.content();
+    REQUIRE(std::equal(content.begin(), content.end(), sample_packet.begin() + 2, sample_packet.end()));
 }
 
 TEST_CASE("BerView: Empty packet")
@@ -33,7 +35,8 @@ TEST_CASE("BerView: Empty packet")
     REQUIRE(view.class_() == fast_ber::Class::universal);
     REQUIRE(view.tag() == 0);
 
-    REQUIRE(view.ber() == empty_packet);
+    auto ber = view.ber();
+    REQUIRE(std::equal(ber.begin(), ber.end(), empty_packet.begin(), empty_packet.end()));
     REQUIRE(view.content().empty());
 }
 

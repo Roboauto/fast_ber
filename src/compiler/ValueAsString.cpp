@@ -1,6 +1,7 @@
 #include "fast_ber/compiler/ValueAsString.hpp"
 
 #include <iostream>
+#include <assert.h>
 
 std::string cpp_value(const HexStringValue& hex)
 {
@@ -63,9 +64,9 @@ std::string value_as_string(const NamedType& value_type, const Value& value)
     }
     else if (is_bit_string(value_type.type))
     {
-        if (absl::holds_alternative<BitStringValue>(value.value_selection))
+        if (std::holds_alternative<BitStringValue>(value.value_selection))
         {
-            const BitStringValue& bstring = absl::get<BitStringValue>(value.value_selection);
+            const BitStringValue& bstring = std::get<BitStringValue>(value.value_selection);
             (void)bstring; // TODO: convert bstring to cstring
             result += "\"\"";
         }
@@ -76,9 +77,9 @@ std::string value_as_string(const NamedType& value_type, const Value& value)
     }
     else if (is_enumerated(value_type.type))
     {
-        if (absl::holds_alternative<DefinedValue>(value.value_selection))
+        if (std::holds_alternative<DefinedValue>(value.value_selection))
         {
-            const DefinedValue& defined = absl::get<DefinedValue>(value.value_selection);
+            const DefinedValue& defined = std::get<DefinedValue>(value.value_selection);
             result += value_type.name + "Values::" + defined.reference;
         }
         else
@@ -86,39 +87,39 @@ std::string value_as_string(const NamedType& value_type, const Value& value)
             throw std::runtime_error("Unexpected Enumerated type");
         }
     }
-    else if (absl::holds_alternative<std::string>(value.value_selection))
+    else if (std::holds_alternative<std::string>(value.value_selection))
     {
-        const std::string& string = absl::get<std::string>(value.value_selection);
+        const std::string& string = std::get<std::string>(value.value_selection);
         result += string;
     }
-    else if (absl::holds_alternative<HexStringValue>(value.value_selection))
+    else if (std::holds_alternative<HexStringValue>(value.value_selection))
     {
-        const HexStringValue& hstring = absl::get<HexStringValue>(value.value_selection);
-        result += "absl::string_view(" + cpp_value(hstring) + ")";
+        const HexStringValue& hstring = std::get<HexStringValue>(value.value_selection);
+        result += "std::string_view(" + cpp_value(hstring) + ")";
     }
-    else if (absl::holds_alternative<CharStringValue>(value.value_selection))
+    else if (std::holds_alternative<CharStringValue>(value.value_selection))
     {
-        const CharStringValue& cstring = absl::get<CharStringValue>(value.value_selection);
-        result += "absl::string_view(" + cstring.value + ")";
+        const CharStringValue& cstring = std::get<CharStringValue>(value.value_selection);
+        result += "std::string_view(" + cstring.value + ")";
     }
-    else if (absl::holds_alternative<int64_t>(value.value_selection))
+    else if (std::holds_alternative<int64_t>(value.value_selection))
     {
-        const int64_t integer = absl::get<int64_t>(value.value_selection);
+        const int64_t integer = std::get<int64_t>(value.value_selection);
         result += std::to_string(integer);
     }
-    else if (absl::holds_alternative<DefinedValue>(value.value_selection))
+    else if (std::holds_alternative<DefinedValue>(value.value_selection))
     {
-        const DefinedValue& defined = absl::get<DefinedValue>(value.value_selection);
+        const DefinedValue& defined = std::get<DefinedValue>(value.value_selection);
         result += defined.reference;
     }
-    else if (absl::holds_alternative<BooleanValue>(value.value_selection))
+    else if (std::holds_alternative<BooleanValue>(value.value_selection))
     {
-        const BooleanValue& boolean = absl::get<BooleanValue>(value.value_selection);
+        const BooleanValue& boolean = std::get<BooleanValue>(value.value_selection);
         result += (boolean.value) ? "true" : "false";
     }
-    else if (absl::holds_alternative<double>(value.value_selection))
+    else if (std::holds_alternative<double>(value.value_selection))
     {
-        const double& real = absl::get<double>(value.value_selection);
+        const double& real = std::get<double>(value.value_selection);
         result += std::to_string(real);
     }
     else

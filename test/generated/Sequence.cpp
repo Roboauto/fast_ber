@@ -9,8 +9,8 @@ TEST_CASE("Sequence: Empty")
     std::array<uint8_t, 100>   buffer   = {};
     fast_ber::Sequence_::Empty sequence = {};
 
-    fast_ber::EncodeResult encode_result = fast_ber::encode(absl::MakeSpan(buffer.data(), buffer.size()), sequence);
-    fast_ber::DecodeResult decode_result = fast_ber::decode(absl::MakeSpan(buffer.data(), buffer.size()), sequence);
+    fast_ber::EncodeResult encode_result = fast_ber::encode(std::span(buffer.data(), buffer.size()), sequence);
+    fast_ber::DecodeResult decode_result = fast_ber::decode(std::span(buffer.data(), buffer.size()), sequence);
 
     REQUIRE(encode_result.success);
     REQUIRE(decode_result.success);
@@ -32,8 +32,8 @@ TEST_CASE("Sequence: Encode / Decode")
     std::array<uint8_t, 100>   buffer   = {};
     fast_ber::Sequence_::Empty sequence = {};
 
-    fast_ber::EncodeResult encode_result = fast_ber::encode(absl::MakeSpan(buffer.data(), buffer.size()), sequence);
-    fast_ber::DecodeResult decode_result = fast_ber::decode(absl::MakeSpan(buffer.data(), buffer.size()), sequence);
+    fast_ber::EncodeResult encode_result = fast_ber::encode(std::span(buffer.data(), buffer.size()), sequence);
+    fast_ber::DecodeResult decode_result = fast_ber::decode(std::span(buffer.data(), buffer.size()), sequence);
 
     REQUIRE(encode_result.success);
     REQUIRE(decode_result.success);

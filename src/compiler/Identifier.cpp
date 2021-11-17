@@ -1,7 +1,8 @@
 #include "fast_ber/compiler/Identifier.hpp"
 #include "fast_ber/compiler/ResolveType.hpp"
 
-#include "absl/container/flat_hash_set.h"
+#include <set>
+#include <assert.h>
 
 TaggingInfo identifier(const AnyType&, const Module&, const Asn1Tree&)
 {
@@ -61,7 +62,7 @@ TaggingInfo identifier(const ChoiceType& choice, const Module& module, const Asn
         }
     }
 
-    absl::flat_hash_set<Identifier> outer_ids;
+    std::unordered_set<Identifier> outer_ids;
     for (const Identifier& id : info.outer_tags())
     {
         if (outer_ids.count(id) > 0)
@@ -234,12 +235,12 @@ TaggingInfo identifier(const DefinedType& defined, const Module& current_module,
 TaggingInfo identifier(const BuiltinType& type, const Module& current_module, const Asn1Tree& tree)
 {
     IdentifierHelper tag_helper{current_module, tree};
-    return absl::visit(tag_helper, type);
+    return std::visit(tag_helper, type);
 }
 TaggingInfo identifier(const Type& type, const Module& current_module, const Asn1Tree& tree)
 {
     IdentifierHelper tag_helper{current_module, tree};
-    return absl::visit(tag_helper, type);
+    return std::visit(tag_helper, type);
 }
 
 std::vector<Identifier> outer_identifiers(const AnyType&, const Module&, const Asn1Tree&)
@@ -431,10 +432,10 @@ std::vector<Identifier> outer_identifiers(const DefinedType& defined, const Modu
 std::vector<Identifier> outer_identifiers(const BuiltinType& type, const Module& current_module, const Asn1Tree& tree)
 {
     OuterIdentifierHelper tag_helper{current_module, tree};
-    return absl::visit(tag_helper, type);
+    return std::visit(tag_helper, type);
 }
 std::vector<Identifier> outer_identifiers(const Type& type, const Module& current_module, const Asn1Tree& tree)
 {
     OuterIdentifierHelper tag_helper{current_module, tree};
-    return absl::visit(tag_helper, type);
+    return std::visit(tag_helper, type);
 }

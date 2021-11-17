@@ -1,33 +1,22 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.20)
 project(fast_ber VERSION "0.4")
 
 if (NOT DEFINED CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 11)
+  set(CMAKE_CXX_STANDARD 23)
 endif()
 
-option(SKIP_TESTING "Skip building tests" OFF)
+option(SKIP_TESTING "Skip building tests" ON)
 option(SKIP_AUTO_GENERATION "Use checked in lexer rather than generating with bison" OFF)
 
 if (NOT ${SKIP_TESTING})
   enable_testing()
 endif()
 
-set(ABSEIL_LIBS absl::base absl::container absl::strings absl::variant absl::optional absl::time absl::flat_hash_set)
-if (EXISTS "${CMAKE_BINARY_DIR}/conanbuildinfo.cmake")
-  include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-  conan_basic_setup()
-  set(ABSEIL_LIBS absl::absl)
-  find_package(absl REQUIRED CONFIG)
-elseif (EXISTS "${CMAKE_SOURCE_DIR}/3rd_party/abseil-cpp/CMakeLists.txt")
-  add_subdirectory("3rd_party/abseil-cpp")
-  set(SKIP_INSTALL TRUE)
-else()
-  find_package(absl REQUIRED)
-endif()
-
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(default_build_type Release)
 set(BENCHMARKS_INCLUDE_ASN1C true)
+
+find_package(Boost REQUIRED COMPONENTS date_time)
 
 if (CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
   add_compile_options("-O3" "-Wall" "-Wextra" "-pedantic" "-Wcast-align" "-Wpointer-arith" "-Wshadow")

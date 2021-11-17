@@ -4,21 +4,21 @@
 #include "fast_ber/util/EncodeHelpers.hpp"
 #include "fast_ber/util/FixedIdBerContainer.hpp"
 
-#include "absl/container/inlined_vector.h"
-#include "absl/types/span.h"
+#include <vector>
+#include <span>
 
 namespace fast_ber
 {
 
-using ObjectIdentifierComponents = absl::InlinedVector<int64_t, 10>;
+using ObjectIdentifierComponents = std::vector<int64_t>;
 
 size_t       encoded_object_id_length(const ObjectIdentifierComponents& input) noexcept;
-EncodeResult encode_object_id(absl::Span<uint8_t> output, const ObjectIdentifierComponents& input,
+EncodeResult encode_object_id(std::span<uint8_t> output, const ObjectIdentifierComponents& input,
                               size_t encoded_length = 0) noexcept;
-DecodeResult decode_object_id(absl::Span<const uint8_t> input, ObjectIdentifierComponents& output) noexcept;
+DecodeResult decode_object_id(std::span<const uint8_t> input, ObjectIdentifierComponents& output) noexcept;
 // Return -1 on fail
-int64_t get_component_number(absl::Span<const uint8_t> input, size_t component_number) noexcept;
-size_t  get_number_of_components(absl::Span<const uint8_t> input) noexcept;
+int64_t get_component_number(std::span<const uint8_t> input, size_t component_number) noexcept;
+size_t  get_number_of_components(std::span<const uint8_t> input) noexcept;
 
 template <typename Identifier = ExplicitId<UniversalTag::object_identifier>>
 class ObjectIdentifier
@@ -51,7 +51,7 @@ class ObjectIdentifier
     bool assign(const ObjectIdentifierComponents& oid) noexcept;
 
     size_t       encoded_length() const noexcept;
-    EncodeResult encode(absl::Span<uint8_t> buffer) const noexcept;
+    EncodeResult encode(std::span<uint8_t> buffer) const noexcept;
     DecodeResult decode(BerView buffer) noexcept;
 
     using AsnId = Identifier;
@@ -80,7 +80,7 @@ inline size_t encoded_object_id_length(const ObjectIdentifierComponents& input) 
     return output_size;
 }
 
-inline EncodeResult encode_object_id(absl::Span<uint8_t> output, const ObjectIdentifierComponents& input,
+inline EncodeResult encode_object_id(std::span<uint8_t> output, const ObjectIdentifierComponents& input,
                                      size_t encoded_length) noexcept
 {
     if (encoded_length == 0)
@@ -125,7 +125,7 @@ inline EncodeResult encode_object_id(absl::Span<uint8_t> output, const ObjectIde
     return EncodeResult{true, encoded_length};
 }
 
-inline DecodeResult decode_object_id(absl::Span<const uint8_t> input, absl::InlinedVector<int64_t, 10>& output) noexcept
+inline DecodeResult decode_object_id(std::span<const uint8_t> input, std::vector<int64_t>& output) noexcept
 {
     if (!output.empty())
     {
@@ -140,7 +140,7 @@ inline DecodeResult decode_object_id(absl::Span<const uint8_t> input, absl::Inli
     output.push_back(input[0] / 40);
     output.push_back(input[0] % 40);
 
-    for (size_t i = 1, current_num = 0; i < input.length(); i++)
+    for (size_t i = 1, current_num = 0; i < input.size(); i++)
     {
         current_num += 0x7F & input[i];
         if (0x80 & input[i])
@@ -157,7 +157,7 @@ inline DecodeResult decode_object_id(absl::Span<const uint8_t> input, absl::Inli
     return DecodeResult{true};
 }
 
-inline int64_t get_component_number(absl::Span<const uint8_t> input, size_t number_of_component_to_extract) noexcept
+inline int64_t get_component_number(std::span<const uint8_t> input, size_t number_of_component_to_extract) noexcept
 {
     if (input.empty())
     {
@@ -173,7 +173,7 @@ inline int64_t get_component_number(absl::Span<const uint8_t> input, size_t numb
         return input[1] % 40;
     }
 
-    for (size_t i = 1, current_num = 0, current_component_number = 2; i < static_cast<size_t>(input.length()); i++)
+    for (size_t i = 1, current_num = 0, current_component_number = 2; i < static_cast<size_t>(input.size()); i++)
     {
         current_num += 0x7F & input[i];
         if (0x80 & input[i])
@@ -194,7 +194,7 @@ inline int64_t get_component_number(absl::Span<const uint8_t> input, size_t numb
     return -1;
 }
 
-inline size_t get_number_of_components(absl::Span<const uint8_t> input) noexcept
+inline size_t get_number_of_components(std::span<const uint8_t> input) noexcept
 {
     if (input.empty())
     {
@@ -202,7 +202,7 @@ inline size_t get_number_of_components(absl::Span<const uint8_t> input) noexcept
     }
 
     size_t number_of_components = 2;
-    for (size_t i = 1; i < input.length(); i++)
+    for (size_t i = 1; i < input.size(); i++)
     {
         if (!(0x80 & input[i]))
         {
@@ -224,7 +224,9 @@ template <typename Identifier>
 template <typename Identifier2>
 bool ObjectIdentifier<Identifier>::operator==(const ObjectIdentifier<Identifier2>& rhs) const noexcept
 {
-    return this->m_contents.content() == rhs.m_contents.content();
+    auto lhc = this->m_contents.content();
+    auto rhc = rhs.m_contents.content();
+    return std::equal(lhc.begin(), lhc.end(), rhc.begin(), rhc.end());
 }
 
 template <typename Identifier>
@@ -276,7 +278,7 @@ bool ObjectIdentifier<Identifier>::assign(const ObjectIdentifierComponents& oid)
 {
     const size_t encoded_length = encoded_object_id_length(oid);
     m_contents.resize_content(encoded_length);
-    EncodeResult res = encode_object_id(absl::Span<uint8_t>(m_contents.content()), oid, encoded_length);
+    EncodeResult res = encode_object_id(std::span<uint8_t>(m_contents.content()), oid, encoded_length);
     if (res.success)
     {
         assert(res.length == m_contents.content_length());
@@ -291,7 +293,7 @@ size_t ObjectIdentifier<Identifier>::encoded_length() const noexcept
 }
 
 template <typename Identifier>
-EncodeResult ObjectIdentifier<Identifier>::encode(absl::Span<uint8_t> output) const noexcept
+EncodeResult ObjectIdentifier<Identifier>::encode(std::span<uint8_t> output) const noexcept
 {
     return this->m_contents.encode(output);
 }

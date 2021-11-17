@@ -45,24 +45,24 @@ void resolve_components_of(Asn1Tree& tree)
     {
         for (Assignment& assignemnt : module.assignments)
         {
-            if (absl::holds_alternative<TypeAssignment>(assignemnt.specific))
+            if (std::holds_alternative<TypeAssignment>(assignemnt.specific))
             {
-                TypeAssignment& type_assignment = absl::get<TypeAssignment>(assignemnt.specific);
+                TypeAssignment& type_assignment = std::get<TypeAssignment>(assignemnt.specific);
                 if (is_sequence(type_assignment.type))
                 {
-                    SequenceType& sequence = absl::get<SequenceType>(absl::get<BuiltinType>(type_assignment.type));
+                    SequenceType& sequence = std::get<SequenceType>(std::get<BuiltinType>(type_assignment.type));
                     for (auto iter = sequence.components.begin(); iter != sequence.components.end(); iter++)
                     {
                         if (iter->components_of)
                         {
                             if (is_defined(*iter->components_of))
                             {
-                                const DefinedType& defined    = absl::get<DefinedType>(*iter->components_of);
+                                const DefinedType& defined    = std::get<DefinedType>(*iter->components_of);
                                 const Type&        inheretied = type(resolve(tree, module.module_reference, defined));
                                 if (is_sequence(inheretied))
                                 {
                                     const SequenceType& inheretied_sequence =
-                                        absl::get<SequenceType>(absl::get<BuiltinType>(inheretied));
+                                        std::get<SequenceType>(std::get<BuiltinType>(inheretied));
 
                                     const size_t offset = std::distance(sequence.components.begin(), iter);
                                     sequence.components.insert(iter, inheretied_sequence.components.begin(),
@@ -75,7 +75,7 @@ void resolve_components_of(Asn1Tree& tree)
                                 else if (is_set(inheretied))
                                 {
                                     const SetType& inheretied_set =
-                                        absl::get<SetType>(absl::get<BuiltinType>(inheretied));
+                                        std::get<SetType>(std::get<BuiltinType>(inheretied));
 
                                     const size_t offset = std::distance(sequence.components.begin(), iter);
                                     sequence.components.insert(iter, inheretied_set.components.begin(),
@@ -89,7 +89,7 @@ void resolve_components_of(Asn1Tree& tree)
                             else if (is_sequence(*iter->components_of))
                             {
                                 const SequenceType& inheretied_sequence =
-                                    absl::get<SequenceType>(absl::get<BuiltinType>(*iter->components_of));
+                                    std::get<SequenceType>(std::get<BuiltinType>(*iter->components_of));
 
                                 const size_t offset = std::distance(sequence.components.begin(), iter);
                                 sequence.components.insert(iter, inheretied_sequence.components.begin(),
@@ -102,7 +102,7 @@ void resolve_components_of(Asn1Tree& tree)
                             else if (is_set(*iter->components_of))
                             {
                                 const SetType& inheretied_set =
-                                    absl::get<SetType>(absl::get<BuiltinType>(*iter->components_of));
+                                    std::get<SetType>(std::get<BuiltinType>(*iter->components_of));
 
                                 const size_t offset = std::distance(sequence.components.begin(), iter);
                                 sequence.components.insert(iter, inheretied_set.components.begin(),
@@ -156,7 +156,7 @@ void resolve_dependencies(std::unordered_map<std::string, Assignment>& assignmen
     visited_names.insert(name);
 
     auto is_circular = [&](const std::vector<Dependency>& depends) -> bool {
-        absl::flat_hash_set<Dependency> complete_depends;
+        std::unordered_set<Dependency> complete_depends;
         for (const Dependency& dependency : depends)
         {
             // If circular dependancy, use dynamic storage. Else, resolve and use static storage
@@ -178,7 +178,7 @@ void resolve_dependencies(std::unordered_map<std::string, Assignment>& assignmen
 
             if (is_choice(type(assignment)))
             {
-                ChoiceType& choice = absl::get<ChoiceType>(absl::get<BuiltinType>(type(assignment)));
+                ChoiceType& choice = std::get<ChoiceType>(std::get<BuiltinType>(type(assignment)));
                 choice.storage     = StorageMode::dynamic;
 
                 // Also mark self referential children as dynamic (Sizeof choice cannot yet be determined)
@@ -187,26 +187,26 @@ void resolve_dependencies(std::unordered_map<std::string, Assignment>& assignmen
                 {
                     Type& child_type =
                         is_prefixed(child.type)
-                            ? absl::get<PrefixedType>(absl::get<BuiltinType>(child.type)).tagged_type->type
+                            ? std::get<PrefixedType>(std::get<BuiltinType>(child.type)).tagged_type->type
                             : child.type;
 
                     if (is_set_of(child_type))
                     {
-                        absl::get<SetOfType>(absl::get<BuiltinType>(child_type)).storage = StorageMode::dynamic;
+                        std::get<SetOfType>(std::get<BuiltinType>(child_type)).storage = StorageMode::dynamic;
                     }
                     if (is_sequence_of(child_type))
                     {
-                        absl::get<SequenceOfType>(absl::get<BuiltinType>(child_type)).storage = StorageMode::dynamic;
+                        std::get<SequenceOfType>(std::get<BuiltinType>(child_type)).storage = StorageMode::dynamic;
                     }
                 }
             }
             else if (is_set_of(type(assignment)))
             {
-                absl::get<SetOfType>(absl::get<BuiltinType>(type(assignment))).storage = StorageMode::dynamic;
+                std::get<SetOfType>(std::get<BuiltinType>(type(assignment))).storage = StorageMode::dynamic;
             }
             else if (is_sequence_of(type(assignment)))
             {
-                absl::get<SequenceOfType>(absl::get<BuiltinType>(type(assignment))).storage = StorageMode::dynamic;
+                std::get<SequenceOfType>(std::get<BuiltinType>(type(assignment))).storage = StorageMode::dynamic;
             }
             std::cout << "Type " << name << " has circular dependencies, setting dynamic storage policy" << std::endl;
         }
@@ -226,7 +226,7 @@ void resolve_dependencies(std::unordered_map<std::string, Assignment>& assignmen
     }
     else if (is_type(assignment) && is_sequence(type(assignment)))
     {
-        SequenceType& sequence = absl::get<SequenceType>(absl::get<BuiltinType>(type(assignment)));
+        SequenceType& sequence = std::get<SequenceType>(std::get<BuiltinType>(type(assignment)));
         for (ComponentType& component : sequence.components)
         {
             if (component.default_value)
@@ -237,10 +237,10 @@ void resolve_dependencies(std::unordered_map<std::string, Assignment>& assignmen
                                          ordered_assignment_infos);
                 }
 
-                if (absl::holds_alternative<DefinedValue>(component.default_value->value_selection) &&
+                if (std::holds_alternative<DefinedValue>(component.default_value->value_selection) &&
                     !is_enumerated(resolve_type(tree, module.module_reference, component.named_type).type))
                 {
-                    const DefinedValue& defined = absl::get<DefinedValue>(component.default_value->value_selection);
+                    const DefinedValue& defined = std::get<DefinedValue>(component.default_value->value_selection);
                     resolve_dependencies(assignment_infos, defined.reference, tree, module, assigned_names,
                                          visited_names, ordered_assignment_infos);
                 }
@@ -265,7 +265,7 @@ void resolve_dependencies(std::unordered_map<std::string, Assignment>& assignmen
     }
     else if (is_type(assignment) && is_set(type(assignment)))
     {
-        SetType& sequence = absl::get<SetType>(absl::get<BuiltinType>(type(assignment)));
+        SetType& sequence = std::get<SetType>(std::get<BuiltinType>(type(assignment)));
         for (ComponentType& component : sequence.components)
         {
             if (component.default_value)
@@ -276,10 +276,10 @@ void resolve_dependencies(std::unordered_map<std::string, Assignment>& assignmen
                                          ordered_assignment_infos);
                 }
 
-                if (absl::holds_alternative<DefinedValue>(component.default_value->value_selection) &&
+                if (std::holds_alternative<DefinedValue>(component.default_value->value_selection) &&
                     !is_enumerated(resolve_type(tree, module.module_reference, component.named_type).type))
                 {
-                    const DefinedValue& defined = absl::get<DefinedValue>(component.default_value->value_selection);
+                    const DefinedValue& defined = std::get<DefinedValue>(component.default_value->value_selection);
                     resolve_dependencies(assignment_infos, defined.reference, tree, module, assigned_names,
                                          visited_names, ordered_assignment_infos);
                 }
@@ -359,21 +359,21 @@ void find_nested_structs(const Module& module, Type& type, std::vector<NamedType
 {
     if (is_set(type))
     {
-        for (ComponentType& component : absl::get<SetType>(absl::get<BuiltinType>(type)).components)
+        for (ComponentType& component : std::get<SetType>(std::get<BuiltinType>(type)).components)
         {
             find_nested_structs(module, component.named_type.type, nested_structs);
         }
     }
     else if (is_sequence(type))
     {
-        for (ComponentType& component : absl::get<SequenceType>(absl::get<BuiltinType>(type)).components)
+        for (ComponentType& component : std::get<SequenceType>(std::get<BuiltinType>(type)).components)
         {
             find_nested_structs(module, component.named_type.type, nested_structs);
         }
     }
     else if (is_set_of(type))
     {
-        SetOfType& set_of     = absl::get<SetOfType>(absl::get<BuiltinType>(type));
+        SetOfType& set_of     = std::get<SetOfType>(std::get<BuiltinType>(type));
         Type&      inner_type = set_of.has_name ? set_of.named_type->type : *set_of.type;
         find_nested_structs(module, inner_type, nested_structs);
 
@@ -404,7 +404,7 @@ void find_nested_structs(const Module& module, Type& type, std::vector<NamedType
     }
     else if (is_sequence_of(type))
     {
-        SequenceOfType& sequence_of = absl::get<SequenceOfType>(absl::get<BuiltinType>(type));
+        SequenceOfType& sequence_of = std::get<SequenceOfType>(std::get<BuiltinType>(type));
         Type&           inner_type  = sequence_of.has_name ? sequence_of.named_type->type : *sequence_of.type;
 
         find_nested_structs(module, inner_type, nested_structs);
@@ -436,7 +436,7 @@ void find_nested_structs(const Module& module, Type& type, std::vector<NamedType
     }
     else if (is_choice(type))
     {
-        ChoiceType& choice = absl::get<ChoiceType>(absl::get<BuiltinType>(type));
+        ChoiceType& choice = std::get<ChoiceType>(std::get<BuiltinType>(type));
         for (NamedType& choice_selection : choice.choices)
         {
             Type& inner_type = choice_selection.type;
@@ -445,7 +445,7 @@ void find_nested_structs(const Module& module, Type& type, std::vector<NamedType
     }
     else if (is_prefixed(type))
     {
-        Type& inner_type = absl::get<PrefixedType>(absl::get<BuiltinType>(type)).tagged_type->type;
+        Type& inner_type = std::get<PrefixedType>(std::get<BuiltinType>(type)).tagged_type->type;
         find_nested_structs(module, inner_type, nested_structs);
 
         if (is_set(inner_type))
@@ -505,31 +505,31 @@ std::vector<Assignment> split_imports(const Asn1Tree& tree, std::vector<Assignme
 std::vector<Assignment> split_definitions(const std::vector<Assignment>& assignments)
 {
     return assignments;
-    std::vector<Assignment> split_assignments;
-    split_assignments.reserve(assignments.size());
+    //std::vector<Assignment> split_assignments;
+    //split_assignments.reserve(assignments.size());
 
-    for (const Assignment& assignment : assignments)
-    {
-        if (absl::holds_alternative<TypeAssignment>(assignment.specific))
-        {
-            const TypeAssignment& type_assign = absl::get<TypeAssignment>(assignment.specific);
-            if (is_integer(type_assign.type))
-            {
-                const IntegerType& integer = absl::get<IntegerType>(absl::get<BuiltinType>(type_assign.type));
-                for (const NamedNumber& named_number : integer.named_numbers)
-                {
-                    split_assignments.push_back(
-                        Assignment{named_number.name,
-                                   ValueAssignment{BuiltinType{IntegerType{}}, Value{named_number.number}},
-                                   {},
-                                   {}});
-                }
-            }
-        }
-        split_assignments.push_back(assignment);
-    }
+    //for (const Assignment& assignment : assignments)
+    //{
+    //    if (std::holds_alternative<TypeAssignment>(assignment.specific))
+    //    {
+    //        const TypeAssignment& type_assign = std::get<TypeAssignment>(assignment.specific);
+    //        if (is_integer(type_assign.type))
+    //        {
+    //            const IntegerType& integer = std::get<IntegerType>(std::get<BuiltinType>(type_assign.type));
+    //            for (const NamedNumber& named_number : integer.named_numbers)
+    //            {
+    //                split_assignments.push_back(
+    //                    Assignment{named_number.name,
+    //                               ValueAssignment{BuiltinType{IntegerType{}}, Value{named_number.number}},
+    //                               {},
+    //                               {}});
+    //            }
+    //        }
+    //    }
+    //    split_assignments.push_back(assignment);
+    //}
 
-    return split_assignments;
+    //return split_assignments;
 }
 
 // structs (Sequence and Sets) cannot be defined within other definitions in C++, due to this nested assignments are
@@ -541,10 +541,10 @@ std::vector<Assignment> split_nested_structures(const Module& module)
 
     for (Assignment assignment : module.assignments)
     {
-        if (absl::holds_alternative<TypeAssignment>(assignment.specific))
+        if (std::holds_alternative<TypeAssignment>(assignment.specific))
         {
             std::vector<NamedType> nested_structs;
-            find_nested_structs(module, absl::get<TypeAssignment>(assignment.specific).type, nested_structs);
+            find_nested_structs(module, std::get<TypeAssignment>(assignment.specific).type, nested_structs);
 
             for (auto nested_iter = nested_structs.rbegin(); nested_iter != nested_structs.rend(); nested_iter++)
             {
@@ -562,12 +562,13 @@ void resolve_module_dependencies(const std::unordered_map<std::string, Module>& 
                                  std::unordered_set<std::string>& visited_names, std::vector<Module>& ordered_modules)
 {
     const auto&   module_iter = module_map.find(name);
-    const Module& module      = module_iter->second;
 
     if (module_iter == module_map.end())
     {
         throw std::runtime_error("Reference to undefined module: " + name);
     }
+
+    const Module& module = module_iter->second;
 
     if (assigned_names.count(name) == 1)
     {

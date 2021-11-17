@@ -4,10 +4,12 @@
 #include "fast_ber/util/Definitions.hpp"
 #include "fast_ber/util/EncodeIdentifiers.hpp"
 
-#include "absl/types/span.h"
+#include <span>
 
 #include <cstddef> // for uint8_t
 #include <cstring> // for std::memmove
+
+#include <assert.h>
 
 namespace fast_ber
 {
@@ -19,7 +21,7 @@ struct EncodeResult
 };
 
 template <Class T1, Tag T2>
-EncodeResult encode_header(absl::Span<uint8_t> buffer, size_t content_length, Id<T1, T2> id, Construction construction)
+EncodeResult encode_header(std::span<uint8_t> buffer, size_t content_length, Id<T1, T2> id, Construction construction)
 {
     size_t header_length = encode_header(buffer, construction, id.class_(), id.tag(), content_length);
     if (header_length == 0)
@@ -34,12 +36,12 @@ template <typename Identifier, size_t content_length = 0,
 std::array<uint8_t, encoded_length> encoded_header() noexcept
 {
     std::array<uint8_t, encoded_length> data = {};
-    encode_header(absl::Span<uint8_t>(data), content_length, Identifier{}, Construction::primitive);
+    encode_header(std::span<uint8_t>(data), content_length, Identifier{}, Construction::primitive);
     return data;
 }
 
 template <typename OuterId, typename InnerId>
-EncodeResult encode_header(absl::Span<uint8_t> buffer, size_t content_length, DoubleId<OuterId, InnerId> id,
+EncodeResult encode_header(std::span<uint8_t> buffer, size_t content_length, DoubleId<OuterId, InnerId> id,
                            Construction construction)
 {
     size_t inner_header_length = encoded_header_length(content_length, id.inner_id());
@@ -51,7 +53,7 @@ EncodeResult encode_header(absl::Span<uint8_t> buffer, size_t content_length, Do
     }
 
     auto inner = buffer;
-    inner.remove_prefix(outer_header_length);
+    inner = inner.subspan(outer_header_length);
 
     encode_header(inner, content_length, id.inner_id(), construction);
     return encode_header(buffer, inner_header_length + content_length, id.outer_id(), Construction::constructed);
@@ -65,16 +67,16 @@ EncodeResult encode_header(absl::Span<uint8_t> buffer, size_t content_length, Do
 // has been added.
 
 template <typename Identifier>
-EncodeResult wrap_with_ber_header(absl::Span<uint8_t> buffer, size_t content_length, Identifier id,
+EncodeResult wrap_with_ber_header(std::span<uint8_t> buffer, size_t content_length, Identifier id,
                                   size_t content_offset = 0, Construction construction = Construction::constructed)
 {
     size_t header_length = encoded_header_length(content_length, id);
-    if (header_length + content_length > buffer.length())
+    if (header_length + content_length > buffer.size())
     {
         return EncodeResult{false, 0};
     }
 
-    assert(buffer.length() >= content_length + content_offset);
+    assert(buffer.size() >= content_length + content_offset);
     if (content_offset != header_length)
     {
         std::memmove(buffer.data() + header_length, buffer.data() + content_offset, content_length);
@@ -89,7 +91,7 @@ constexpr size_t encoded_length(const T& object) noexcept
 }
 
 template <typename T>
-EncodeResult encode(absl::Span<uint8_t> output, const T& object) noexcept
+EncodeResult encode(std::span<uint8_t> output, const T& object) noexcept
 {
     return object.encode(output);
 }

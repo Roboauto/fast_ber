@@ -2,9 +2,9 @@
 
 #include "fast_ber/compiler/CppGeneration.hpp"
 
-#include "absl/memory/memory.h"
-#include "absl/types/optional.h"
-#include "absl/types/variant.h"
+#include <memory>
+#include <optional>
+#include <variant>
 
 #include <algorithm>
 #include <cctype>
@@ -56,8 +56,8 @@ struct NamedNumber
 };
 struct EnumerationValue
 {
-    std::string             name;
-    absl::optional<int64_t> value;
+    std::string            name;
+    std::optional<int64_t> value;
 };
 
 struct AnyType
@@ -346,19 +346,19 @@ struct SetOfType;
 struct PrefixedType
 {
     PrefixedType() = default;
-    PrefixedType(const TaggedType& type) : tagged_type(absl::make_unique<TaggedType>(type)) {}
+    PrefixedType(const TaggedType& type) : tagged_type(std::make_unique<TaggedType>(type)) {}
     PrefixedType(const PrefixedType& rhs)
     {
         if (rhs.tagged_type)
         {
-            tagged_type = absl::make_unique<TaggedType>(*rhs.tagged_type);
+            tagged_type = std::make_unique<TaggedType>(*rhs.tagged_type);
         }
     }
     PrefixedType& operator=(const PrefixedType& rhs)
     {
         if (rhs.tagged_type)
         {
-            tagged_type = absl::make_unique<TaggedType>(*rhs.tagged_type);
+            tagged_type = std::make_unique<TaggedType>(*rhs.tagged_type);
         }
         return *this;
     }
@@ -376,18 +376,18 @@ struct UTCTimeType
 struct DefinedType;
 
 using BuiltinType =
-    absl::variant<AnyType, BitStringType, BooleanType, CharacterStringType, ChoiceType, DateType, DateTimeType,
-                  DurationType, EmbeddedPDVType, EnumeratedType, ExternalType, GeneralizedTimeType, InstanceOfType,
-                  IntegerType, IRIType, NullType, ObjectClassFieldType, ObjectDescriptorType, ObjectIdentifierType,
-                  OctetStringType, RealType, RelativeIRIType, RelativeOIDType, SequenceType, SequenceOfType, SetType,
-                  SetOfType, PrefixedType, TimeType, TimeOfDayType, UTCTimeType>;
-using Type = absl::variant<BuiltinType, DefinedType>;
+    std::variant<AnyType, BitStringType, BooleanType, CharacterStringType, ChoiceType, DateType, DateTimeType,
+                 DurationType, EmbeddedPDVType, EnumeratedType, ExternalType, GeneralizedTimeType, InstanceOfType,
+                 IntegerType, IRIType, NullType, ObjectClassFieldType, ObjectDescriptorType, ObjectIdentifierType,
+                 OctetStringType, RealType, RelativeIRIType, RelativeOIDType, SequenceType, SequenceOfType, SetType,
+                 SetOfType, PrefixedType, TimeType, TimeOfDayType, UTCTimeType>;
+using Type = std::variant<BuiltinType, DefinedType>;
 
 struct DefinedType
 {
-    absl::optional<std::string> module_reference;
-    std::string                 type_reference;
-    std::vector<Type>           parameters;
+    std::optional<std::string> module_reference;
+    std::string                type_reference;
+    std::vector<Type>          parameters;
 };
 struct SequenceOfType
 {
@@ -465,8 +465,8 @@ struct TimeValue
 
 struct Value
 {
-    absl::variant<std::vector<Value>, int64_t, std::string, NamedNumber, BitStringValue, HexStringValue,
-                  CharStringValue, DefinedValue, BooleanValue, NullValue, TimeValue, double>
+    std::variant<std::vector<Value>, int64_t, std::string, NamedNumber, BitStringValue, HexStringValue, CharStringValue,
+                 DefinedValue, BooleanValue, NullValue, TimeValue, double>
         value_selection;
 };
 
@@ -484,11 +484,11 @@ struct NamedValue
 
 struct ComponentType
 {
-    NamedType             named_type;
-    bool                  is_optional;
-    absl::optional<Value> default_value;
-    absl::optional<Type>  components_of;
-    StorageMode           optional_storage;
+    NamedType            named_type;
+    bool                 is_optional;
+    std::optional<Value> default_value;
+    std::optional<Type>  components_of;
+    StorageMode          optional_storage;
 };
 
 struct Tag
@@ -526,8 +526,8 @@ struct FixedTypeValueField
 
 struct ClassField
 {
-    std::string                                   name;
-    absl::variant<TypeField, FixedTypeValueField> field;
+    std::string                                  name;
+    std::variant<TypeField, FixedTypeValueField> field;
 };
 
 struct ObjectClassAssignment
@@ -541,32 +541,47 @@ struct ObjectSetAssignment
 
 struct Parameter
 {
-    absl::optional<Type> governor;
-    std::string          reference;
+    std::optional<Type> governor;
+    std::string         reference;
 };
+
+struct Dependency;
+
+namespace std
+{
+template <>
+struct hash<Dependency>
+{
+  public:
+    size_t operator()(const Dependency& c) const; // don't define yet
+};
+} // namespace std
 
 struct Dependency
 {
-    std::string                 name;
-    absl::optional<std::string> module_reference;
+    std::string                name;
+    std::optional<std::string> module_reference;
 
-    template <typename H>
-    friend H AbslHashValue(H h, const Dependency& d)
-    {
-        return H::combine(std::move(h), d.name, d.module_reference);
-    }
     bool operator==(const Dependency& rhs) const
     {
         return name == rhs.name && module_reference == rhs.module_reference;
     }
 };
 
+namespace std
+{
+inline size_t hash<Dependency>::operator()(const Dependency& c) const
+{
+    return std::hash<std::string>()(c.name) ^ std::hash<std::optional<std::string>>()(c.module_reference);
+}
+} // namespace std
+
 struct Assignment
 {
-    std::string                                                                                name;
-    absl::variant<TypeAssignment, ValueAssignment, ObjectClassAssignment, ObjectSetAssignment> specific;
-    std::vector<Dependency>                                                                    depends_on;
-    std::vector<Parameter>                                                                     parameters;
+    std::string                                                                               name;
+    std::variant<TypeAssignment, ValueAssignment, ObjectClassAssignment, ObjectSetAssignment> specific;
+    std::vector<Dependency>                                                                   depends_on;
+    std::vector<Parameter>                                                                    parameters;
 };
 
 struct Import
@@ -594,6 +609,18 @@ struct Asn1Tree
     std::vector<Module> modules;
 };
 
+struct Identifier;
+
+namespace std
+{
+template <>
+struct hash<Identifier>
+{
+  public:
+    size_t operator()(const Identifier& c) const; // don't define yet
+};
+} // namespace std
+
 struct Identifier
 {
     Class        class_     = Class::universal;
@@ -620,23 +647,28 @@ struct Identifier
         }
     }
 
-    template <typename H>
-    friend H AbslHashValue(H h, const Identifier& i)
-    {
-        return H::combine(std::move(h), i.class_, i.tag_number, i.universal);
-    }
+    friend size_t std::hash<Identifier>::operator()(const Identifier&) const;
+
     bool operator==(const Identifier& rhs) const
     {
         return class_ == rhs.class_ && tag_number == rhs.tag_number && universal == rhs.universal;
     }
 };
 
+namespace std
+{
+inline size_t hash<Identifier>::operator()(const Identifier& c) const
+{
+    return std::hash<Class>()(c.class_) ^ std::hash<int64_t>()(c.tag_number) ^ std::hash<UniversalTag>()(c.universal);
+}
+} // namespace std
+
 struct TaggingInfo
 {
-    absl::optional<Identifier> outer_tag;
-    Identifier                 inner_tag;
-    std::vector<Identifier>    choice_ids;
-    bool                       is_default_tagged;
+    std::optional<Identifier> outer_tag;
+    Identifier                inner_tag;
+    std::vector<Identifier>   choice_ids;
+    bool                      is_default_tagged;
 
     std::string name() const
     {
@@ -682,40 +714,40 @@ struct TaggingInfo
 
 struct ObjectIdComponentValue
 {
-    absl::optional<std::string> name;
-    absl::optional<int64_t>     value;
+    std::optional<std::string> name;
+    std::optional<int64_t>     value;
 };
 
 struct ObjectIdComponents
 {
     ObjectIdComponents(const Value& value)
     {
-        if (!absl::holds_alternative<std::vector<Value>>(value.value_selection))
+        if (!std::holds_alternative<std::vector<Value>>(value.value_selection))
         {
             throw std::runtime_error("Failed to interpret value as object identifier");
         }
-        const std::vector<Value>& value_list = absl::get<std::vector<Value>>(value.value_selection);
+        const std::vector<Value>& value_list = std::get<std::vector<Value>>(value.value_selection);
         components.reserve(value_list.size());
         for (const Value& component : value_list)
         {
-            if (absl::holds_alternative<DefinedValue>(component.value_selection))
+            if (std::holds_alternative<DefinedValue>(component.value_selection))
             {
-                const std::string& name = absl::get<DefinedValue>(component.value_selection).reference;
-                components.push_back(ObjectIdComponentValue{name, absl::nullopt});
+                const std::string& name = std::get<DefinedValue>(component.value_selection).reference;
+                components.push_back(ObjectIdComponentValue{name, std::nullopt});
             }
-            else if (absl::holds_alternative<std::string>(component.value_selection))
+            else if (std::holds_alternative<std::string>(component.value_selection))
             {
-                const std::string& name = absl::get<std::string>(component.value_selection);
-                components.push_back(ObjectIdComponentValue{name, absl::nullopt});
+                const std::string& name = std::get<std::string>(component.value_selection);
+                components.push_back(ObjectIdComponentValue{name, std::nullopt});
             }
-            else if (absl::holds_alternative<int64_t>(component.value_selection))
+            else if (std::holds_alternative<int64_t>(component.value_selection))
             {
-                const int64_t& number = absl::get<int64_t>(component.value_selection);
-                components.push_back(ObjectIdComponentValue{absl::nullopt, number});
+                const int64_t& number = std::get<int64_t>(component.value_selection);
+                components.push_back(ObjectIdComponentValue{std::nullopt, number});
             }
-            else if (absl::holds_alternative<NamedNumber>(component.value_selection))
+            else if (std::holds_alternative<NamedNumber>(component.value_selection))
             {
-                const NamedNumber& named_number = absl::get<NamedNumber>(component.value_selection);
+                const NamedNumber& named_number = std::get<NamedNumber>(component.value_selection);
                 components.push_back(ObjectIdComponentValue{named_number.name, named_number.number});
             }
             else

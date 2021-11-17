@@ -11,10 +11,10 @@ TEST_CASE("Tags: Encoding a packet with various tagging modes")
     std::array<uint8_t, 5000>  buffer = {};
     fast_ber::Tags::Collection tags   = {};
 
-    fast_ber::EncodeResult encode_result = fast_ber::encode(absl::MakeSpan(buffer.data(), buffer.size()), tags);
+    fast_ber::EncodeResult encode_result = fast_ber::encode(std::span(buffer.data(), buffer.size()), tags);
     REQUIRE(encode_result.success);
 
-    fast_ber::BerView tags_view(absl::MakeSpan(buffer.data(), encode_result.length));
+    fast_ber::BerView tags_view(std::span(buffer.data(), encode_result.length));
     auto              iter = tags_view.begin();
     for (int i = 0; i < 6; ++i, ++iter)
     {
@@ -69,7 +69,7 @@ TEST_CASE("Tags: Unspecified tags of an automatic sequence should be sequential"
     fast_ber::Tags::DefaultCollection c1;
     std::vector<uint8_t>              buffer(1000, 0x00);
 
-    c1.encode(absl::Span<uint8_t>(buffer));
+    c1.encode(std::span<uint8_t>(buffer));
     fast_ber::BerViewIterator itr = fast_ber::BerView(buffer).begin();
 
     CHECK(fast_ber::has_correct_header(*itr, fast_ber::ExplicitId<fast_ber::UniversalTag::octet_string>{},
@@ -83,7 +83,7 @@ TEST_CASE("Tags: Unspecified tags of an automatic sequence should be sequential"
     ++itr;
 
     fast_ber::AutomaticTags::DefaultCollection c2;
-    c2.encode(absl::Span<uint8_t>(buffer));
+    c2.encode(std::span<uint8_t>(buffer));
     itr = fast_ber::BerView(buffer).begin();
 
     CHECK(fast_ber::has_correct_header(*itr, fast_ber::Id<fast_ber::Class::context_specific, 0>{},
@@ -104,9 +104,9 @@ TEST_CASE("Tags: Encoding and decoding a packet with various tagging modes")
     fast_ber::Tags::Collection tags{"Implicit", "And explicit tags", 0, true, false, true, {}};
     fast_ber::Tags::Collection tags_copy{};
 
-    fast_ber::EncodeResult encode_result = fast_ber::encode(absl::MakeSpan(buffer.data(), buffer.size()), tags);
+    fast_ber::EncodeResult encode_result = fast_ber::encode(std::span(buffer.data(), buffer.size()), tags);
     CHECK(encode_result.success);
-    fast_ber::DecodeResult decode_result = fast_ber::decode(absl::MakeSpan(buffer.data(), buffer.size()), tags_copy);
+    fast_ber::DecodeResult decode_result = fast_ber::decode(std::span(buffer.data(), buffer.size()), tags_copy);
     CHECK(decode_result.success);
 
     CHECK(tags_copy.string1 == "Implicit");
@@ -154,8 +154,8 @@ TEST_CASE("Tags: Tagging an enum")
     REQUIRE(a == fast_ber::Tags::TaggedEnum::Values::enum_);
 
     std::array<uint8_t, 5000> buffer        = {};
-    fast_ber::EncodeResult    encode_result = fast_ber::encode(absl::MakeSpan(buffer.data(), buffer.size()), a);
-    fast_ber::DecodeResult    decode_result = fast_ber::decode(absl::MakeSpan(buffer.data(), buffer.size()), a);
+    fast_ber::EncodeResult    encode_result = fast_ber::encode(std::span(buffer.data(), buffer.size()), a);
+    fast_ber::DecodeResult    decode_result = fast_ber::decode(std::span(buffer.data(), buffer.size()), a);
 
     REQUIRE(encode_result.success);
     REQUIRE(decode_result.success);

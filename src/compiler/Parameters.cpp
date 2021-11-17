@@ -44,38 +44,38 @@ void resolve_parameterized(const Asn1Tree& tree, const Module& module, PrefixedT
 void resolve_parameterized(const Asn1Tree& tree, const Module& module, BuiltinType& type,
                            const ParameterTypes& parameters)
 {
-    if (absl::holds_alternative<ChoiceType>(type))
+    if (std::holds_alternative<ChoiceType>(type))
     {
-        resolve_parameterized(tree, module, absl::get<ChoiceType>(type), parameters);
+        resolve_parameterized(tree, module, std::get<ChoiceType>(type), parameters);
     }
-    else if (absl::holds_alternative<SequenceType>(type))
+    else if (std::holds_alternative<SequenceType>(type))
     {
-        resolve_parameterized(tree, module, absl::get<SequenceType>(type), parameters);
+        resolve_parameterized(tree, module, std::get<SequenceType>(type), parameters);
     }
-    else if (absl::holds_alternative<SequenceOfType>(type))
+    else if (std::holds_alternative<SequenceOfType>(type))
     {
-        resolve_parameterized(tree, module, absl::get<SequenceOfType>(type), parameters);
+        resolve_parameterized(tree, module, std::get<SequenceOfType>(type), parameters);
     }
-    else if (absl::holds_alternative<SetType>(type))
+    else if (std::holds_alternative<SetType>(type))
     {
-        resolve_parameterized(tree, module, absl::get<SetType>(type), parameters);
+        resolve_parameterized(tree, module, std::get<SetType>(type), parameters);
     }
-    else if (absl::holds_alternative<SetOfType>(type))
+    else if (std::holds_alternative<SetOfType>(type))
     {
-        resolve_parameterized(tree, module, absl::get<SetOfType>(type), parameters);
+        resolve_parameterized(tree, module, std::get<SetOfType>(type), parameters);
     }
-    else if (absl::holds_alternative<PrefixedType>(type))
+    else if (std::holds_alternative<PrefixedType>(type))
     {
-        resolve_parameterized(tree, module, absl::get<PrefixedType>(type), parameters);
+        resolve_parameterized(tree, module, std::get<PrefixedType>(type), parameters);
     }
 }
 
 void resolve_parameterized(const Asn1Tree& tree, const Module& module, Type& param_type,
                            const ParameterTypes& parameters)
 {
-    if (absl::holds_alternative<DefinedType>(param_type))
+    if (std::holds_alternative<DefinedType>(param_type))
     {
-        const DefinedType& defined = absl::get<DefinedType>(param_type);
+        const DefinedType& defined = std::get<DefinedType>(param_type);
         if (defined.parameters.size() > 0)
         {
             throw std::runtime_error("Nested parameters!");
@@ -92,9 +92,9 @@ void resolve_parameterized(const Asn1Tree& tree, const Module& module, Type& par
         // param_type = type(resolve(tree, module.module_reference, defined));
         // resolve_parameterized(tree, module, param_type, parameters);
     }
-    else if (absl::holds_alternative<BuiltinType>(param_type))
+    else if (std::holds_alternative<BuiltinType>(param_type))
     {
-        resolve_parameterized(tree, module, absl::get<BuiltinType>(param_type), parameters);
+        resolve_parameterized(tree, module, std::get<BuiltinType>(param_type), parameters);
     }
 }
 
@@ -136,37 +136,37 @@ void parameterized_to_concrete(const Asn1Tree& tree, const Module& module, Prefi
 
 void parameterized_to_concrete(const Asn1Tree& tree, const Module& module, BuiltinType& type)
 {
-    if (absl::holds_alternative<ChoiceType>(type))
+    if (std::holds_alternative<ChoiceType>(type))
     {
-        parameterized_to_concrete(tree, module, absl::get<ChoiceType>(type));
+        parameterized_to_concrete(tree, module, std::get<ChoiceType>(type));
     }
-    else if (absl::holds_alternative<SequenceType>(type))
+    else if (std::holds_alternative<SequenceType>(type))
     {
-        parameterized_to_concrete(tree, module, absl::get<SequenceType>(type));
+        parameterized_to_concrete(tree, module, std::get<SequenceType>(type));
     }
-    else if (absl::holds_alternative<SequenceOfType>(type))
+    else if (std::holds_alternative<SequenceOfType>(type))
     {
-        parameterized_to_concrete(tree, module, absl::get<SequenceOfType>(type));
+        parameterized_to_concrete(tree, module, std::get<SequenceOfType>(type));
     }
-    else if (absl::holds_alternative<SetType>(type))
+    else if (std::holds_alternative<SetType>(type))
     {
-        parameterized_to_concrete(tree, module, absl::get<SetType>(type));
+        parameterized_to_concrete(tree, module, std::get<SetType>(type));
     }
-    else if (absl::holds_alternative<SetOfType>(type))
+    else if (std::holds_alternative<SetOfType>(type))
     {
-        parameterized_to_concrete(tree, module, absl::get<SetOfType>(type));
+        parameterized_to_concrete(tree, module, std::get<SetOfType>(type));
     }
-    else if (absl::holds_alternative<PrefixedType>(type))
+    else if (std::holds_alternative<PrefixedType>(type))
     {
-        parameterized_to_concrete(tree, module, absl::get<PrefixedType>(type));
+        parameterized_to_concrete(tree, module, std::get<PrefixedType>(type));
     }
 }
 
 void parameterized_to_concrete(const Asn1Tree& tree, const Module& module, Type& param_type)
 {
-    if (absl::holds_alternative<DefinedType>(param_type))
+    if (std::holds_alternative<DefinedType>(param_type))
     {
-        const DefinedType& defined = absl::get<DefinedType>(param_type);
+        const DefinedType& defined = std::get<DefinedType>(param_type);
         if (defined.parameters.size() > 0)
         {
             const Assignment& parameter_template = resolve(tree, module.module_reference, defined);
@@ -188,9 +188,9 @@ void parameterized_to_concrete(const Asn1Tree& tree, const Module& module, Type&
             return;
         }
     }
-    else if (absl::holds_alternative<BuiltinType>(param_type))
+    else if (std::holds_alternative<BuiltinType>(param_type))
     {
-        parameterized_to_concrete(tree, module, absl::get<BuiltinType>(param_type));
+        parameterized_to_concrete(tree, module, std::get<BuiltinType>(param_type));
     }
 }
 
@@ -212,7 +212,7 @@ void resolve_parameters(Asn1Tree& tree)
     {
         for (Assignment& assignment : module.assignments)
         {
-            if (absl::holds_alternative<TypeAssignment>(assignment.specific))
+            if (std::holds_alternative<TypeAssignment>(assignment.specific))
             {
                 if (assignment.parameters.size() == 0)
                 {

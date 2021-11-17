@@ -1,8 +1,8 @@
 #pragma once
 
-#include "absl/memory/memory.h"
-#include "absl/types/optional.h"
-#include "absl/types/span.h"
+#include <memory>
+#include <optional>
+#include <span>
 
 #include "fast_ber/ber_types/Class.hpp"
 #include "fast_ber/ber_types/Identifier.hpp"
@@ -15,18 +15,18 @@ namespace fast_ber
 {
 
 template <typename T>
-using StaticOptional = absl::optional<T>;
+using StaticOptional = std::optional<T>;
 
 template <typename T, StorageMode storage>
 struct OptionalImplementation
 {
-    using Type = absl::optional<T>;
+    using Type = std::optional<T>;
 };
 
 template <typename T>
 struct OptionalImplementation<T, StorageMode::static_>
 {
-    using Type = absl::optional<T>;
+    using Type = std::optional<T>;
 };
 
 template <typename T>
@@ -52,13 +52,13 @@ struct Optional : public OptionalImplementation<T, storage>::Type
     ~Optional() noexcept                     = default;
 
     size_t       encoded_length() const noexcept;
-    EncodeResult encode(absl::Span<uint8_t> buffer) const noexcept;
+    EncodeResult encode(std::span<uint8_t> buffer) const noexcept;
     DecodeResult decode(BerView input) noexcept;
 
     template <typename Identifier>
     size_t encoded_length_with_id() const noexcept;
     template <typename Identifier>
-    EncodeResult encode_with_id(absl::Span<uint8_t> buffer) const noexcept;
+    EncodeResult encode_with_id(std::span<uint8_t> buffer) const noexcept;
     template <typename Identifier>
     DecodeResult decode_with_id(BerView input) noexcept;
 };
@@ -95,7 +95,7 @@ size_t Optional<T, s1>::encoded_length() const noexcept
 }
 
 template <typename T, StorageMode s1>
-EncodeResult Optional<T, s1>::encode(absl::Span<uint8_t> buffer) const noexcept
+EncodeResult Optional<T, s1>::encode(std::span<uint8_t> buffer) const noexcept
 {
     if (this->has_value())
     {
@@ -157,7 +157,7 @@ size_t Optional<T, s1>::encoded_length_with_id() const noexcept
 
 template <typename T, StorageMode s1>
 template <typename Identifier>
-EncodeResult Optional<T, s1>::encode_with_id(absl::Span<uint8_t> buffer) const noexcept
+EncodeResult Optional<T, s1>::encode_with_id(std::span<uint8_t> buffer) const noexcept
 {
     if (this->has_value())
     {

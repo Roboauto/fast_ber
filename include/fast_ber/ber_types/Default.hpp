@@ -3,8 +3,8 @@
 #include "fast_ber/util/DecodeHelpers.hpp"
 #include "fast_ber/util/EncodeHelpers.hpp"
 
-#include "absl/strings/string_view.h"
-#include "absl/types/optional.h"
+#include <string_view>
+#include <optional>
 
 #include <type_traits>
 
@@ -21,13 +21,13 @@ struct Default
     Default(Default&& rhs) noexcept;
     Default(BerView view) { decode(view); }
 
-    Default(const T& val) : m_item((m_default == val) ? absl::optional<T>() : absl::optional<T>(val)) {}
+    Default(const T& val) : m_item((m_default == val) ? std::optional<T>() : std::optional<T>(val)) {}
     template <typename T2>
-    Default(const T2& val) : m_item((DefaultValue::get_value() == val) ? absl::optional<T>() : absl::optional<T>(val))
+    Default(const T2& val) : m_item((DefaultValue::get_value() == val) ? std::optional<T>() : std::optional<T>(val))
     {
     }
 
-    Default(const char* val) : Default(absl::string_view(val)) // Avoid pointer comparisons for const char*
+    Default(const char* val) : Default(std::string_view(val)) // Avoid pointer comparisons for const char*
     {
     }
 
@@ -43,14 +43,14 @@ struct Default
     const T&              get() const noexcept { return is_default() ? m_default : *m_item; }
     decltype(T{}.value()) value() const noexcept(T{}.value()) { return get()->value(); }
     bool                  is_default() const noexcept { return !m_item; }
-    void                  set_to_default() noexcept { m_item = absl::nullopt; }
+    void                  set_to_default() noexcept { m_item = std::nullopt; }
 
     size_t       encoded_length() const noexcept;
-    EncodeResult encode(absl::Span<uint8_t> buffer) const noexcept;
+    EncodeResult encode(std::span<uint8_t> buffer) const noexcept;
     DecodeResult decode(BerView input) noexcept;
 
   private:
-    absl::optional<T> m_item;
+    std::optional<T> m_item;
     const T           m_default = T(DefaultValue::get_value());
 };
 
@@ -90,7 +90,7 @@ Default<T, DefaultValue>& Default<T, DefaultValue>::operator=(const T2& val)
 {
     if (DefaultValue::get_value() == val)
     {
-        m_item = absl::nullopt;
+        m_item = std::nullopt;
     }
     else
     {
@@ -104,7 +104,7 @@ Default<T, DefaultValue>& Default<T, DefaultValue>::operator=(const T& val)
 {
     if (m_default == val)
     {
-        m_item = absl::nullopt;
+        m_item = std::nullopt;
     }
     else
     {
@@ -117,7 +117,7 @@ Default<T, DefaultValue>& Default<T, DefaultValue>::operator=(const T& val)
 template <typename T, typename DefaultValue>
 Default<T, DefaultValue>& Default<T, DefaultValue>::operator=(const char* val)
 {
-    *this = absl::string_view(val);
+    *this = std::string_view(val);
     return *this;
 }
 
@@ -135,7 +135,7 @@ size_t Default<T, DefaultValue>::encoded_length() const noexcept
 }
 
 template <typename T, typename DefaultValue>
-EncodeResult Default<T, DefaultValue>::encode(absl::Span<uint8_t> buffer) const noexcept
+EncodeResult Default<T, DefaultValue>::encode(std::span<uint8_t> buffer) const noexcept
 {
     if (is_default())
     {
@@ -207,13 +207,13 @@ bool operator==(const Default<T, DefaultValue>& lhs, const Default<T2, DefaultVa
 template <typename T, typename DefaultValue>
 bool operator==(const Default<T, DefaultValue>& lhs, const char* rhs)
 {
-    return lhs.get() == absl::string_view(rhs);
+    return lhs.get() == std::string_view(rhs);
 }
 
 template <typename T, typename DefaultValue>
 bool operator==(const char* lhs, const Default<T, DefaultValue>& rhs)
 {
-    return absl::string_view(lhs) == rhs.get();
+    return std::string_view(lhs) == rhs.get();
 }
 
 template <typename T, typename T2, typename DefaultValue>

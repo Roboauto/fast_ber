@@ -6,7 +6,7 @@
 #include "fast_ber/compiler/ValueAsString.hpp"
 #include "fast_ber/compiler/ValueType.hpp"
 
-#include "absl/container/flat_hash_set.h"
+#include <set>
 
 #include <iostream>
 
@@ -94,13 +94,13 @@ CodeBlock create_collection_definition(const Collection& collection, const Modul
         block.add_line(create_template_definition({"Identifier"}));
         block.add_line("size_t encoded_length_with_id() const noexcept;");
         block.add_line(create_template_definition({"Identifier"}));
-        block.add_line("EncodeResult encode_with_id(absl::Span<uint8_t>) const noexcept;");
+        block.add_line("EncodeResult encode_with_id(std::span<uint8_t>) const noexcept;");
         block.add_line(create_template_definition({"Identifier"}));
         block.add_line("DecodeResult decode_with_id(BerView) noexcept;");
 
         block.add_line("size_t encoded_length() const noexcept");
         block.add_line("{ return encoded_length_with_id<" + id + ">(); }");
-        block.add_line("EncodeResult encode(absl::Span<uint8_t> output) const noexcept");
+        block.add_line("EncodeResult encode(std::span<uint8_t> output) const noexcept");
         block.add_line("{ return encode_with_id<" + id + ">(output); }");
         block.add_line("DecodeResult decode(BerView input) noexcept");
         block.add_line("{ return decode_with_id<" + id + ">(input); }");
@@ -234,7 +234,7 @@ void check_valid(const SequenceType& sequence, const Module& module, const Asn1T
     if (module.tagging_default != TaggingMode::automatic)
     {
         std::vector<Identifier>     previous_optional_ids;
-        absl::optional<std::string> previous_optional_type;
+        std::optional<std::string> previous_optional_type;
         for (const ComponentType& component : sequence.components)
         {
             if (component.is_optional || component.default_value)
@@ -256,7 +256,7 @@ void check_valid(const SequenceType& sequence, const Module& module, const Asn1T
             }
             else
             {
-                previous_optional_type = absl::nullopt;
+                previous_optional_type = std::nullopt;
                 previous_optional_ids.clear();
             }
         }
@@ -289,7 +289,7 @@ void check_valid(const SetType& set, const Module& module, const Asn1Tree& tree,
 {
     if (module.tagging_default != TaggingMode::automatic)
     {
-        absl::flat_hash_set<Identifier> ids;
+        std::unordered_set<Identifier> ids;
         for (const ComponentType& component : set.components)
         {
             auto outer_ids = identifier(component.named_type.type, module, tree).outer_tags();
@@ -378,14 +378,14 @@ std::string type_as_string(const BuiltinType& type, const Module& module, const 
                            const std::string& type_name, const std::string& identifier_override)
 {
     ToStringHelper string_helper{module, tree, type_name, identifier_override};
-    return absl::visit(string_helper, type);
+    return std::visit(string_helper, type);
 }
 
 std::string type_as_string(const Type& type, const Module& module, const Asn1Tree& tree, const std::string& type_name,
                            const std::string& identifier_override)
 {
     ToStringHelper string_helper{module, tree, type_name, identifier_override};
-    return absl::visit(string_helper, type);
+    return std::visit(string_helper, type);
 }
 
 CodeBlock create_type_assignment(const std::string& name, const Type& assignment_type, const Module& module,
@@ -395,7 +395,7 @@ CodeBlock create_type_assignment(const std::string& name, const Type& assignment
 
     if (is_enumerated(assignment_type))
     {
-        const EnumeratedType& enumerated = absl::get<EnumeratedType>(absl::get<BuiltinType>(assignment_type));
+        const EnumeratedType& enumerated = std::get<EnumeratedType>(std::get<BuiltinType>(assignment_type));
         block.add_line("enum class " + name + "Values");
         CodeScope scope(block, true);
         for (const EnumerationValue& enum_value : enumerated.enum_values)
@@ -412,31 +412,31 @@ CodeBlock create_type_assignment(const std::string& name, const Type& assignment
     }
     else if (is_set_of(assignment_type))
     {
-        const SetOfType& sequence = absl::get<SetOfType>(absl::get<BuiltinType>(assignment_type));
+        const SetOfType& sequence = std::get<SetOfType>(std::get<BuiltinType>(assignment_type));
         const Type&      type     = sequence.has_name ? sequence.named_type->type : *sequence.type;
         block.add_block(create_type_assignment(name + "Contained", type, module, tree, {}, false));
     }
     else if (is_sequence_of(assignment_type))
     {
-        const SequenceOfType& sequence = absl::get<SequenceOfType>(absl::get<BuiltinType>(assignment_type));
+        const SequenceOfType& sequence = std::get<SequenceOfType>(std::get<BuiltinType>(assignment_type));
         const Type&           type     = sequence.has_name ? sequence.named_type->type : *sequence.type;
         block.add_block(create_type_assignment(name + "Contained", type, module, tree, {}, false));
     }
     else if (is_set(assignment_type))
     {
-        const SetType& set = absl::get<SetType>(absl::get<BuiltinType>(assignment_type));
+        const SetType& set = std::get<SetType>(std::get<BuiltinType>(assignment_type));
         check_valid(set, module, tree, name);
         return create_collection_definition(set, module, tree, name, identifier_override);
     }
     else if (is_sequence(assignment_type))
     {
-        const SequenceType& sequence = absl::get<SequenceType>(absl::get<BuiltinType>(assignment_type));
+        const SequenceType& sequence = std::get<SequenceType>(std::get<BuiltinType>(assignment_type));
         check_valid(sequence, module, tree, name);
         return create_collection_definition(sequence, module, tree, name, identifier_override);
     }
     else if (is_choice(assignment_type))
     {
-        const ChoiceType& choice = absl::get<ChoiceType>(absl::get<BuiltinType>(assignment_type));
+        const ChoiceType& choice = std::get<ChoiceType>(std::get<BuiltinType>(assignment_type));
         return create_choice_definition(choice, module, tree, name, identifier_override);
     }
 
@@ -448,7 +448,7 @@ CodeBlock create_type_assignment(const std::string& name, const Type& assignment
             id = identifier(assignment_type, module, tree).name();
         }
 
-        const PrefixedType& prefixed = absl::get<PrefixedType>(absl::get<BuiltinType>(assignment_type));
+        const PrefixedType& prefixed = std::get<PrefixedType>(std::get<BuiltinType>(assignment_type));
         block.add_block(create_type_assignment(name, prefixed.tagged_type->type, module, tree, id, introduce_type));
     }
     else
@@ -461,7 +461,7 @@ CodeBlock create_type_assignment(const std::string& name, const Type& assignment
 
         if (is_defined(assignment_type))
         {
-            DefinedType const&        defined_type = absl::get<DefinedType>(assignment_type);
+            DefinedType const&        defined_type = std::get<DefinedType>(assignment_type);
             NamedTypeAndModule const& resolved = resolve_type_and_module(tree, module.module_reference, defined_type);
             if (is_enumerated(resolved.type.type) && resolved.module.module_reference != module.module_reference)
             {
@@ -484,6 +484,6 @@ CodeBlock create_type_assignment(const std::string& name, const Type& assignment
 
 CodeBlock create_type_assignment(const Assignment& assignment, const Module& module, const Asn1Tree& tree)
 {
-    return create_type_assignment(assignment.name, absl::get<TypeAssignment>(assignment.specific).type, module, tree,
+    return create_type_assignment(assignment.name, std::get<TypeAssignment>(assignment.specific).type, module, tree,
                                   {}, true);
 }

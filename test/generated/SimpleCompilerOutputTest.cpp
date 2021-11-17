@@ -22,9 +22,9 @@ TEST_CASE("SimpleCompilerOutput: Testing a generated ber container")
     collection.optional_child = fast_ber::Simple::Child{999999999, {"The", "second", "child", std::string(2000, 'x')}};
     collection.the_choice     = fast_ber::Simple::UnnamedChoice0::Goodbye("I chose a string!");
 
-    fast_ber::EncodeResult encode_result = fast_ber::encode(absl::MakeSpan(buffer.data(), buffer.size()), collection);
+    fast_ber::EncodeResult encode_result = fast_ber::encode(std::span(buffer.data(), buffer.size()), collection);
     fast_ber::DecodeResult decode_result =
-        fast_ber::decode(absl::MakeSpan(buffer.data(), buffer.size()), new_collection);
+        fast_ber::decode(std::span(buffer.data(), buffer.size()), new_collection);
 
     REQUIRE(encode_result.success);
     REQUIRE(decode_result.success);
@@ -42,7 +42,7 @@ TEST_CASE("SimpleCompilerOutput: Testing a generated ber container")
     REQUIRE(*new_collection.optional_child->meaning_of_life == 999999999);
     REQUIRE(fast_ber::get<1>(new_collection.the_choice) == "I chose a string!");
 
-    fast_ber::BerView view = absl::Span<const uint8_t>(buffer);
+    fast_ber::BerView view = std::span<const uint8_t>(buffer);
     REQUIRE(std::distance(view.begin(), view.end()) == 7);
 
     std::cout << "fast_ber::Simple::Collection: " << collection << std::endl;

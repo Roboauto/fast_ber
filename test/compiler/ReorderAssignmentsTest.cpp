@@ -13,9 +13,9 @@ TEST_CASE("ReorderAssignments: No depdendencies")
         Assignment{"Boolean", TypeAssignment{BooleanType{}}, {}, {}},
     };
 
-    REQUIRE(is_integer(absl::get<TypeAssignment>(assignments[0].specific).type));
-    REQUIRE(is_octet_string(absl::get<TypeAssignment>(assignments[1].specific).type));
-    REQUIRE(is_boolean(absl::get<TypeAssignment>(assignments[2].specific).type));
+    REQUIRE(is_integer(std::get<TypeAssignment>(assignments[0].specific).type));
+    REQUIRE(is_octet_string(std::get<TypeAssignment>(assignments[1].specific).type));
+    REQUIRE(is_boolean(std::get<TypeAssignment>(assignments[2].specific).type));
 
     auto reordered = reorder_assignments(assignments, Asn1Tree{}, Module{"module"});
 
@@ -25,9 +25,9 @@ TEST_CASE("ReorderAssignments: No depdendencies")
     REQUIRE(reordered[1].depends_on.size() == 0);
     REQUIRE(reordered[2].depends_on.size() == 0);
 
-    REQUIRE(is_integer(absl::get<TypeAssignment>(reordered[0].specific).type));
-    REQUIRE(is_octet_string(absl::get<TypeAssignment>(reordered[1].specific).type));
-    REQUIRE(is_boolean(absl::get<TypeAssignment>(reordered[2].specific).type));
+    REQUIRE(is_integer(std::get<TypeAssignment>(reordered[0].specific).type));
+    REQUIRE(is_octet_string(std::get<TypeAssignment>(reordered[1].specific).type));
+    REQUIRE(is_boolean(std::get<TypeAssignment>(reordered[2].specific).type));
 }
 
 TEST_CASE("ReorderAssignments: Defined")
@@ -37,8 +37,8 @@ TEST_CASE("ReorderAssignments: Defined")
         Assignment{"Boolean", TypeAssignment{BooleanType{}}, {}, {}},
     };
 
-    REQUIRE(is_defined(absl::get<TypeAssignment>(assignments[0].specific).type));
-    REQUIRE(is_boolean(absl::get<TypeAssignment>(assignments[1].specific).type));
+    REQUIRE(is_defined(std::get<TypeAssignment>(assignments[0].specific).type));
+    REQUIRE(is_boolean(std::get<TypeAssignment>(assignments[1].specific).type));
 
     auto reordered = reorder_assignments(assignments, Asn1Tree{}, Module{"module"});
 
@@ -47,8 +47,8 @@ TEST_CASE("ReorderAssignments: Defined")
     REQUIRE(reordered[0].depends_on.size() == 0);
     REQUIRE(reordered[1].depends_on.size() == 1);
 
-    REQUIRE(is_boolean(absl::get<TypeAssignment>(reordered[0].specific).type));
-    REQUIRE(is_defined(absl::get<TypeAssignment>(reordered[1].specific).type));
+    REQUIRE(is_boolean(std::get<TypeAssignment>(reordered[0].specific).type));
+    REQUIRE(is_defined(std::get<TypeAssignment>(reordered[1].specific).type));
 }
 
 TEST_CASE("ReorderAssignments: Sequence")
@@ -63,8 +63,8 @@ TEST_CASE("ReorderAssignments: Sequence")
         Assignment{"Boolean", TypeAssignment{BooleanType{}}, {}, {}},
     };
 
-    REQUIRE(is_sequence(absl::get<TypeAssignment>(assignments[0].specific).type));
-    REQUIRE(is_boolean(absl::get<TypeAssignment>(assignments[1].specific).type));
+    REQUIRE(is_sequence(std::get<TypeAssignment>(assignments[0].specific).type));
+    REQUIRE(is_boolean(std::get<TypeAssignment>(assignments[1].specific).type));
 
     auto reordered = reorder_assignments(assignments, Asn1Tree{}, Module{"module"});
 
@@ -73,10 +73,10 @@ TEST_CASE("ReorderAssignments: Sequence")
     REQUIRE(reordered[0].depends_on.size() == 0);
     REQUIRE(reordered[1].depends_on.size() == 1);
 
-    REQUIRE(is_boolean(absl::get<TypeAssignment>(reordered[0].specific).type));
-    REQUIRE(is_sequence(absl::get<TypeAssignment>(reordered[1].specific).type));
+    REQUIRE(is_boolean(std::get<TypeAssignment>(reordered[0].specific).type));
+    REQUIRE(is_sequence(std::get<TypeAssignment>(reordered[1].specific).type));
 
-    REQUIRE(absl::get<SequenceType>(absl::get<BuiltinType>(absl::get<TypeAssignment>(reordered[1].specific).type))
+    REQUIRE(std::get<SequenceType>(std::get<BuiltinType>(std::get<TypeAssignment>(reordered[1].specific).type))
                 .components[0]
                 .optional_storage == StorageMode::static_);
 }
@@ -98,17 +98,17 @@ TEST_CASE("ReorderAssignments: Circular Sequence")
     };
 
     // Reference is optional, Should reorder and specify ciruclar ok
-    REQUIRE(is_sequence(absl::get<TypeAssignment>(assignments[0].specific).type));
+    REQUIRE(is_sequence(std::get<TypeAssignment>(assignments[0].specific).type));
 
     auto reordered = reorder_assignments(assignments, Asn1Tree{}, Module{"module"});
 
     REQUIRE(assignments.size() == reordered.size());
-    REQUIRE(is_sequence(absl::get<TypeAssignment>(reordered[0].specific).type));
-    REQUIRE(absl::get<SequenceType>(absl::get<BuiltinType>(absl::get<TypeAssignment>(reordered[0].specific).type))
+    REQUIRE(is_sequence(std::get<TypeAssignment>(reordered[0].specific).type));
+    REQUIRE(std::get<SequenceType>(std::get<BuiltinType>(std::get<TypeAssignment>(reordered[0].specific).type))
                 .components[0]
                 .optional_storage == StorageMode::dynamic);
 
-    absl::get<SequenceType>(absl::get<BuiltinType>(absl::get<TypeAssignment>(assignments[0].specific).type))
+    std::get<SequenceType>(std::get<BuiltinType>(std::get<TypeAssignment>(assignments[0].specific).type))
         .components[0]
         .is_optional = false;
 

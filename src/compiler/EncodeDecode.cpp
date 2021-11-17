@@ -5,7 +5,7 @@
 #include "fast_ber/compiler/ResolveType.hpp"
 #include "fast_ber/compiler/Visit.hpp"
 
-#include "absl/strings/string_view.h"
+#include <string_view>
 
 #include <iostream>
 #include <string>
@@ -30,11 +30,11 @@ CodeBlock create_collection_encode_functions(const std::string& name, const Coll
     CodeBlock block;
 
     block.add_line(create_template_definition({"Identifier_"}));
-    block.add_line("inline EncodeResult " + name + "::encode_with_id(absl::Span<uint8_t> output) const noexcept");
+    block.add_line("inline EncodeResult " + name + "::encode_with_id(std::span<uint8_t> output) const noexcept");
     {
         auto scope = CodeScope(block);
         block.add_line("constexpr std::size_t header_length_guess = fast_ber::encoded_length(0, Identifier_{});");
-        block.add_line("if (output.length() < header_length_guess)");
+        block.add_line("if (output.size() < header_length_guess)");
 
         {
             auto scope2 = CodeScope(block);
@@ -45,7 +45,7 @@ CodeBlock create_collection_encode_functions(const std::string& name, const Coll
         {
             block.add_line("EncodeResult res;");
             block.add_line("auto content = output;");
-            block.add_line("content.remove_prefix(header_length_guess);");
+            block.add_line("content = content.subspan(header_length_guess);");
         }
         block.add_line("std::size_t content_length = 0;");
 
@@ -58,7 +58,7 @@ CodeBlock create_collection_encode_functions(const std::string& name, const Coll
                 auto scope2 = CodeScope(block);
                 block.add_line("return res;");
             }
-            block.add_line("content.remove_prefix(res.length);");
+            block.add_line("content = content.subspan(res.length);");
             block.add_line("content_length += res.length;");
         }
         block.add_line("return wrap_with_ber_header(output, content_length, Identifier_{}, header_length_guess);");
@@ -89,7 +89,7 @@ CodeBlock create_choice_encode_functions(const std::string& name, const ChoiceTy
     CodeBlock block;
 
     block.add_line(create_template_definition({"Identifier_"}));
-    block.add_line("inline EncodeResult " + name + "::encode_with_id(absl::Span<uint8_t> output) const noexcept");
+    block.add_line("inline EncodeResult " + name + "::encode_with_id(std::span<uint8_t> output) const noexcept");
     {
         auto scope1 = CodeScope(block);
         block.add_line("EncodeResult res;");
@@ -102,12 +102,12 @@ CodeBlock create_choice_encode_functions(const std::string& name, const ChoiceTy
             auto scope2 = CodeScope(block);
             block.add_line(" header_length_guess = fast_ber::encoded_length(0,Identifier_{});");
 
-            block.add_line("if (output.length() < header_length_guess)");
+            block.add_line("if (output.size() < header_length_guess)");
             {
                 auto scope3 = CodeScope(block);
                 block.add_line("return EncodeResult{false, 0};");
             }
-            block.add_line("content.remove_prefix(header_length_guess);");
+            block.add_line("content = content.subspan(header_length_guess);");
         }
 
         block.add_line("switch (this->index())");
@@ -524,17 +524,17 @@ CodeBlock create_encode_functions_impl(const Asn1Tree& tree, const Module& modul
 {
     if (is_sequence(type))
     {
-        const SequenceType& sequence = absl::get<SequenceType>(absl::get<BuiltinType>(type));
+        const SequenceType& sequence = std::get<SequenceType>(std::get<BuiltinType>(type));
         return create_collection_encode_functions(name, sequence, module, tree);
     }
     else if (is_set(type))
     {
-        const SetType& set = absl::get<SetType>(absl::get<BuiltinType>(type));
+        const SetType& set = std::get<SetType>(std::get<BuiltinType>(type));
         return create_collection_encode_functions(name, set, module, tree);
     }
     else if (is_choice(type))
     {
-        const ChoiceType& choice = absl::get<ChoiceType>(absl::get<BuiltinType>(type));
+        const ChoiceType& choice = std::get<ChoiceType>(std::get<BuiltinType>(type));
         return create_choice_encode_functions(name, choice, module, tree);
     }
     return {};
@@ -545,17 +545,17 @@ CodeBlock create_decode_functions_impl(const Asn1Tree& tree, const Module& modul
 {
     if (is_sequence(type))
     {
-        const SequenceType& sequence = absl::get<SequenceType>(absl::get<BuiltinType>(type));
+        const SequenceType& sequence = std::get<SequenceType>(std::get<BuiltinType>(type));
         return create_collection_decode_functions(name, sequence, module, tree);
     }
     else if (is_set(type))
     {
-        const SetType& set = absl::get<SetType>(absl::get<BuiltinType>(type));
+        const SetType& set = std::get<SetType>(std::get<BuiltinType>(type));
         return create_collection_decode_functions(name, set, module, tree);
     }
     else if (is_choice(type))
     {
-        const ChoiceType& choice = absl::get<ChoiceType>(absl::get<BuiltinType>(type));
+        const ChoiceType& choice = std::get<ChoiceType>(std::get<BuiltinType>(type));
         return create_choice_decode_functions(name, choice, module, tree);
     }
     return {};
@@ -563,7 +563,7 @@ CodeBlock create_decode_functions_impl(const Asn1Tree& tree, const Module& modul
 
 std::string create_encode_functions(const Assignment& assignment, const Module& module, const Asn1Tree& tree)
 {
-    if (absl::holds_alternative<TypeAssignment>(assignment.specific))
+    if (std::holds_alternative<TypeAssignment>(assignment.specific))
     {
         return visit_all_types(tree, module, assignment, create_encode_functions_impl).to_string();
     }
@@ -573,7 +573,7 @@ std::string create_encode_functions(const Assignment& assignment, const Module& 
 
 std::string create_decode_functions(const Assignment& assignment, const Module& module, const Asn1Tree& tree)
 {
-    if (absl::holds_alternative<TypeAssignment>(assignment.specific))
+    if (std::holds_alternative<TypeAssignment>(assignment.specific))
     {
         return visit_all_types(tree, module, assignment, create_decode_functions_impl).to_string();
     }

@@ -19,8 +19,8 @@ TEST_CASE("Circular Types: Optional Members")
     REQUIRE(copy != circular);
 
     std::vector<uint8_t>          buffer(500, 0);
-    const fast_ber::EncodeResult& encode_res = fast_ber::encode(absl::Span<uint8_t>(buffer), circular);
-    const fast_ber::DecodeResult& decode_res = fast_ber::decode(absl::Span<uint8_t>(buffer), copy);
+    const fast_ber::EncodeResult& encode_res = fast_ber::encode(std::span<uint8_t>(buffer), circular);
+    const fast_ber::DecodeResult& decode_res = fast_ber::decode(std::span<uint8_t>(buffer), copy);
 
     REQUIRE(encode_res.success);
     REQUIRE(decode_res.success);
@@ -45,8 +45,8 @@ TEST_CASE("Circular Types: Sequence Of")
     REQUIRE(copy != circular);
 
     std::vector<uint8_t>          buffer(500, 0);
-    const fast_ber::EncodeResult& encode_res = fast_ber::encode(absl::Span<uint8_t>(buffer), circular);
-    const fast_ber::DecodeResult& decode_res = fast_ber::decode(absl::Span<uint8_t>(buffer), copy);
+    const fast_ber::EncodeResult& encode_res = fast_ber::encode(std::span<uint8_t>(buffer), circular);
+    const fast_ber::DecodeResult& decode_res = fast_ber::decode(std::span<uint8_t>(buffer), copy);
 
     REQUIRE(encode_res.success);
     REQUIRE(decode_res.success);
@@ -63,8 +63,8 @@ TEST_CASE("Circular Types: Choice")
     REQUIRE(copy != circular);
 
     std::vector<uint8_t>          buffer(500, 0);
-    const fast_ber::EncodeResult& encode_res = fast_ber::encode(absl::Span<uint8_t>(buffer), circular);
-    const fast_ber::DecodeResult& decode_res = fast_ber::decode(absl::Span<uint8_t>(buffer), copy);
+    const fast_ber::EncodeResult& encode_res = fast_ber::encode(std::span<uint8_t>(buffer), circular);
+    const fast_ber::DecodeResult& decode_res = fast_ber::decode(std::span<uint8_t>(buffer), copy);
 
     REQUIRE(encode_res.success);
     REQUIRE(decode_res.success);
@@ -86,8 +86,8 @@ TEST_CASE("Circular Types: Choice Self Reference")
 
     std::vector<uint8_t>          buffer(500, 0);
     const size_t                  encode_res_len = fast_ber::encoded_length(circular);
-    const fast_ber::EncodeResult& encode_res     = fast_ber::encode(absl::Span<uint8_t>(buffer), circular);
-    const fast_ber::DecodeResult& decode_res     = fast_ber::decode(absl::Span<uint8_t>(buffer), copy);
+    const fast_ber::EncodeResult& encode_res     = fast_ber::encode(std::span<uint8_t>(buffer), circular);
+    const fast_ber::DecodeResult& decode_res     = fast_ber::decode(std::span<uint8_t>(buffer), copy);
 
     CHECK(encode_res.success);
     CHECK(decode_res.success);

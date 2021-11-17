@@ -1,8 +1,6 @@
 #pragma once
 
-#include "absl/base/internal/endian.h"
-#include "absl/strings/numbers.h"
-#include "absl/types/span.h"
+#include <span>
 #include "fast_ber/util/BerView.hpp"
 #include "fast_ber/util/DecodeHelpers.hpp"
 #include "fast_ber/util/EncodeHelpers.hpp"
@@ -14,6 +12,8 @@
 #include <cstdint>
 #include <limits>
 
+#include <bit>
+
 namespace fast_ber
 {
 
@@ -22,12 +22,12 @@ namespace detail
 constexpr size_t MaxEncodedLength = 100;
 } // namespace detail
 
-inline bool   decode_real(absl::Span<const uint8_t> input, double& output) noexcept;
-inline bool   decode_real_special(absl::Span<const uint8_t> input, double& output) noexcept;
-inline bool   decode_real_binary(absl::Span<const uint8_t> input, double& output) noexcept;
-bool          decode_real_decimal(absl::Span<const uint8_t> input, double& output) noexcept; // In .cpp due to <regex>
-inline bool   check_real_binary(absl::Span<const uint8_t> input) noexcept;
-inline size_t encode_real(absl::Span<uint8_t> output, double input) noexcept;
+inline bool   decode_real(std::span<const uint8_t> input, double& output) noexcept;
+inline bool   decode_real_special(std::span<const uint8_t> input, double& output) noexcept;
+inline bool   decode_real_binary(std::span<const uint8_t> input, double& output) noexcept;
+bool          decode_real_decimal(std::span<const uint8_t> input, double& output) noexcept; // In .cpp due to <regex>
+inline bool   check_real_binary(std::span<const uint8_t> input) noexcept;
+inline size_t encode_real(std::span<uint8_t> output, double input) noexcept;
 
 template <typename Identifier = ExplicitId<UniversalTag::real>>
 class Real
@@ -54,7 +54,7 @@ class Real
     bool operator!=(const Real& rhs) const noexcept { return !(*this == rhs); }
 
     size_t       encoded_length() const noexcept;
-    EncodeResult encode(absl::Span<uint8_t> output) const noexcept;
+    EncodeResult encode(std::span<uint8_t> output) const noexcept;
     DecodeResult decode(BerView input) noexcept;
 
     using AsnId = Identifier;
@@ -71,12 +71,12 @@ class Real
  * @param input BER encoded real binary value to check
  * @return true on success, false on failure
  */
-inline bool check_real_binary(absl::Span<const uint8_t> input) noexcept
+inline bool check_real_binary(std::span<const uint8_t> input) noexcept
 {
     /* Minimal binary construction is: | control | exponent | number |  => length is 3 bytes minimum
      * Check that base bits are not set to the reserved value, see X690 Clause 8.5.7.4
      * */
-    if (input.length() > 3 && (input[0] & 0x30) != 0x30)
+    if (input.size() > 3 && (input[0] & 0x30) != 0x30)
     {
         /* X690 Clause 8.5.7.4 */
         size_t exponent_len    = (input[0] & 0x03) + 1;
@@ -92,7 +92,7 @@ inline bool check_real_binary(absl::Span<const uint8_t> input) noexcept
         }
 
         /* Check that exponent length is valid or does not overflow input */
-        if (exponent_len == 0 || (exponent_len + exponent_offset) >= input.length())
+        if (exponent_len == 0 || (exponent_len + exponent_offset) >= input.size())
         {
             return false;
         }
@@ -110,7 +110,7 @@ inline bool check_real_binary(absl::Span<const uint8_t> input) noexcept
         }
 
         /* Check that the mantissa is not zero */
-        for (size_t i = exponent_len + exponent_offset; i < input.length(); ++i)
+        for (size_t i = exponent_len + exponent_offset; i < input.size(); ++i)
         {
             if (input[i] != 0)
                 return true;
@@ -126,12 +126,12 @@ inline bool check_real_binary(absl::Span<const uint8_t> input) noexcept
  * @param output decoded special value
  * @return true on success, false on failure
  */
-inline bool decode_real(absl::Span<const uint8_t> input, double& output) noexcept
+inline bool decode_real(std::span<const uint8_t> input, double& output) noexcept
 {
     bool res = false;
 
     /* X690 Clause 8.5.2: it is the value Plus Zero */
-    if (input.length() == 0)
+    if (input.size() == 0)
     {
         output = 0.0;
         res    = true;
@@ -161,11 +161,11 @@ inline bool decode_real(absl::Span<const uint8_t> input, double& output) noexcep
  * @param output decoded special value
  * @return true on success, false on failure
  */
-inline bool decode_real_special(absl::Span<const uint8_t> input, double& output) noexcept
+inline bool decode_real_special(std::span<const uint8_t> input, double& output) noexcept
 {
     bool res = false;
 
-    if (input.length() == 1)
+    if (input.size() == 1)
     {
         switch (input[0])
         {
@@ -204,7 +204,7 @@ inline bool decode_real_special(absl::Span<const uint8_t> input, double& output)
  * @param output decoded binary value
  * @return true on success, false on failure
  */
-inline bool decode_real_binary(absl::Span<const uint8_t> input, double& output) noexcept
+inline bool decode_real_binary(std::span<const uint8_t> input, double& output) noexcept
 {
     if (!check_real_binary(input))
     {
@@ -305,7 +305,7 @@ inline bool decode_real_binary(absl::Span<const uint8_t> input, double& output) 
      * */
     std::array<uint8_t, 9> double_bytes    = {};
     size_t                 mantissa_offset = exponent_len + exponent_offset;
-    size_t                 mantissa_len    = input.length() - mantissa_offset;
+    size_t                 mantissa_len    = input.size() - mantissa_offset;
 
     /* Skip leading zeros */
     while (mantissa_len > 1 && input[mantissa_offset] == 0)
@@ -423,25 +423,28 @@ inline bool decode_real_binary(absl::Span<const uint8_t> input, double& output) 
     double_bytes[0] = (mantissa_sign << 7) | (exponent >> 4);
     double_bytes[1] = (exponent << 4) | (double_bytes[1] & 0x0F);
 
-#ifdef ABSL_IS_LITTLE_ENDIAN
-    /* Reverse bytes if needed */
-    std::reverse(double_bytes.begin(), double_bytes.end() - 1);
-#endif
+    if (std::endian::native == std::endian::little)
+    {
+        /* Reverse bytes if needed */
+        std::reverse(double_bytes.begin(), double_bytes.end() - 1);
+    }
+
 
     memcpy(&output, double_bytes.data(), sizeof(double));
     return true;
 }
 
-inline size_t encode_real(absl::Span<uint8_t> output, double input) noexcept
+inline size_t encode_real(std::span<uint8_t> output, double input) noexcept
 {
     std::array<uint8_t, sizeof(double) + 1> buffer;
     std::memcpy(buffer.data(), &input, sizeof(double));
     buffer.back() = 0;
 
-#ifdef ABSL_IS_LITTLE_ENDIAN
-    /* Reverse bytes if needed */
-    std::reverse(buffer.begin(), buffer.end() - 1);
-#endif
+    if (std::endian::native == std::endian::little)
+    {
+        /* Reverse bytes if needed */
+        std::reverse(buffer.begin(), buffer.end() - 1);
+    }
 
     unsigned int sign           = buffer[0] >> 7;
     size_t       encoded_length = 0;
@@ -584,7 +587,7 @@ template <typename Identifier>
 inline void Real<Identifier>::assign(double val) noexcept
 {
     m_contents.resize_content(
-        encode_real(absl::Span<uint8_t>(m_contents.content_data(), detail::MaxEncodedLength), val));
+        encode_real(std::span<uint8_t>(m_contents.content_data(), detail::MaxEncodedLength), val));
 }
 
 template <typename Identifier>
@@ -629,7 +632,7 @@ size_t Real<Identifier>::encoded_length() const noexcept
 }
 
 template <typename Identifier>
-EncodeResult Real<Identifier>::encode(absl::Span<uint8_t> output) const noexcept
+EncodeResult Real<Identifier>::encode(std::span<uint8_t> output) const noexcept
 {
     return m_contents.encode(output);
 }

@@ -139,7 +139,7 @@ TEST_CASE("Benchmark: Decode Performance")
         {
             fast_ber::Simple::Collection collection;
             success = fast_ber::decode(
-                          absl::MakeSpan(large_test_collection_packet.begin(), large_test_collection_packet.size()),
+                          std::span(large_test_collection_packet.begin(), large_test_collection_packet.size()),
                           collection)
                           .success;
         }
@@ -168,7 +168,7 @@ TEST_CASE("Benchmark: Decode Performance")
         {
             fast_ber::Simple::Collection collection;
             success = fast_ber::decode(
-                          absl::MakeSpan(small_test_collection_packet.begin(), small_test_collection_packet.size()),
+                          std::span(small_test_collection_packet.begin(), small_test_collection_packet.size()),
                           collection)
                           .success;
         }
@@ -218,7 +218,7 @@ TEST_CASE("Benchmark: Encode Performance")
         for (int i = 0; i < iterations; i++)
         {
             encode_result =
-                fast_ber::encode(absl::MakeSpan(fast_ber_buffer.data(), fast_ber_buffer.size()), collection);
+                fast_ber::encode(std::span(fast_ber_buffer.data(), fast_ber_buffer.size()), collection);
         }
     }
     REQUIRE(encode_result.success);
@@ -259,8 +259,8 @@ TEST_CASE("Benchmark: Encode Performance")
 
     REQUIRE(rval.encoded != -1);
     REQUIRE(rval.encoded == encode_result.length);
-    REQUIRE(absl::MakeSpan(fast_ber_buffer.data(), fast_ber_buffer.size()) ==
-            absl::MakeSpan(asn1c_buffer.data(), asn1c_buffer.size()));
+    REQUIRE(std::span(fast_ber_buffer.data(), fast_ber_buffer.size()) ==
+            std::span(asn1c_buffer.data(), asn1c_buffer.size()));
 
     OCTET_STRING_free(&asn_DEF_OCTET_STRING, &asn1c_collection.hello, 1);
     OCTET_STRING_free(&asn_DEF_OCTET_STRING, &asn1c_collection.goodbye, 1);

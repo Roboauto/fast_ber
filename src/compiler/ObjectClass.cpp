@@ -41,29 +41,29 @@ void object_class_to_concrete(Asn1Tree& tree, Module& module, PrefixedType& pref
 
 void object_class_to_concrete(Asn1Tree& tree, Module& module, BuiltinType& type)
 {
-    if (absl::holds_alternative<ChoiceType>(type))
+    if (std::holds_alternative<ChoiceType>(type))
     {
-        object_class_to_concrete(tree, module, absl::get<ChoiceType>(type));
+        object_class_to_concrete(tree, module, std::get<ChoiceType>(type));
     }
-    else if (absl::holds_alternative<SequenceType>(type))
+    else if (std::holds_alternative<SequenceType>(type))
     {
-        object_class_to_concrete(tree, module, absl::get<SequenceType>(type));
+        object_class_to_concrete(tree, module, std::get<SequenceType>(type));
     }
-    else if (absl::holds_alternative<SequenceOfType>(type))
+    else if (std::holds_alternative<SequenceOfType>(type))
     {
-        object_class_to_concrete(tree, module, absl::get<SequenceOfType>(type));
+        object_class_to_concrete(tree, module, std::get<SequenceOfType>(type));
     }
-    else if (absl::holds_alternative<SetType>(type))
+    else if (std::holds_alternative<SetType>(type))
     {
-        object_class_to_concrete(tree, module, absl::get<SetType>(type));
+        object_class_to_concrete(tree, module, std::get<SetType>(type));
     }
-    else if (absl::holds_alternative<SetOfType>(type))
+    else if (std::holds_alternative<SetOfType>(type))
     {
-        object_class_to_concrete(tree, module, absl::get<SetOfType>(type));
+        object_class_to_concrete(tree, module, std::get<SetOfType>(type));
     }
-    else if (absl::holds_alternative<PrefixedType>(type))
+    else if (std::holds_alternative<PrefixedType>(type))
     {
-        object_class_to_concrete(tree, module, absl::get<PrefixedType>(type));
+        object_class_to_concrete(tree, module, std::get<PrefixedType>(type));
     }
 }
 
@@ -82,9 +82,9 @@ Type create_concrete_type(Asn1Tree& tree, Module& module, ObjectClassFieldType& 
         {
             if (field.name == object_class_field.fieldnames[0])
             {
-                if (absl::holds_alternative<FixedTypeValueField>(field.field))
+                if (std::holds_alternative<FixedTypeValueField>(field.field))
                 {
-                    return absl::get<FixedTypeValueField>(field.field).type;
+                    return std::get<FixedTypeValueField>(field.field).type;
                 }
                 throw std::runtime_error("Referenced class field does not have a type: " +
                                          object_class_field.referenced_object_class.type_reference + "." +
@@ -99,18 +99,18 @@ Type create_concrete_type(Asn1Tree& tree, Module& module, ObjectClassFieldType& 
 
 void object_class_to_concrete(Asn1Tree& tree, Module& module, Type& type)
 {
-    if (absl::holds_alternative<BuiltinType>(type))
+    if (std::holds_alternative<BuiltinType>(type))
     {
-        if (absl::holds_alternative<ObjectClassFieldType>(absl::get<BuiltinType>(type)))
+        if (std::holds_alternative<ObjectClassFieldType>(std::get<BuiltinType>(type)))
         {
-            type = create_concrete_type(tree, module, absl::get<ObjectClassFieldType>(absl::get<BuiltinType>(type)));
+            type = create_concrete_type(tree, module, std::get<ObjectClassFieldType>(std::get<BuiltinType>(type)));
         }
         else
         {
-            object_class_to_concrete(tree, module, absl::get<BuiltinType>(type));
+            object_class_to_concrete(tree, module, std::get<BuiltinType>(type));
         }
     }
-    else if (absl::holds_alternative<DefinedType>(type))
+    else if (std::holds_alternative<DefinedType>(type))
     {
         // Do nothing
     }
@@ -121,17 +121,17 @@ void object_class_to_concrete(Asn1Tree& tree, Module& module, Type& type)
 }
 
 bool is_defined_object_class(const std::string& module_reference, const std::string& type_reference,
-                             const std::set<std::string>& object_class_names)
+                             const std::unordered_set<std::string>& object_class_names)
 {
     return object_class_names.count(module_reference + "." + type_reference) > 0;
 }
 
 bool is_defined_object_class(const Asn1Tree&, Module& module, const Type& type,
-                             const std::set<std::string>& object_class_names)
+                             const std::unordered_set<std::string>& object_class_names)
 {
     if (is_defined(type))
     {
-        const DefinedType& defined = absl::get<DefinedType>(type);
+        const DefinedType& defined = std::get<DefinedType>(type);
         if (defined.module_reference)
         {
             return is_defined_object_class(*defined.module_reference, defined.type_reference, object_class_names);
@@ -141,7 +141,7 @@ bool is_defined_object_class(const Asn1Tree&, Module& module, const Type& type,
     return false;
 }
 
-void remove_object_classes(Asn1Tree& tree, const std::set<std::string>& object_class_names)
+void remove_object_classes(Asn1Tree& tree, const std::unordered_set<std::string>& object_class_names)
 {
     for (Module& module : tree.modules)
     {
@@ -157,10 +157,10 @@ void remove_object_classes(Asn1Tree& tree, const std::set<std::string>& object_c
                     {
                         return is_defined_object_class(tree, module, type(assignment), object_class_names);
                     }
-                    else if (absl::holds_alternative<ValueAssignment>(assignment.specific) &&
-                             absl::holds_alternative<DefinedType>(absl::get<ValueAssignment>(assignment.specific).type))
+                    else if (std::holds_alternative<ValueAssignment>(assignment.specific) &&
+                             std::holds_alternative<DefinedType>(std::get<ValueAssignment>(assignment.specific).type))
                     {
-                        const ValueAssignment& value_assign = absl::get<ValueAssignment>(assignment.specific);
+                        const ValueAssignment& value_assign = std::get<ValueAssignment>(assignment.specific);
                         return is_defined_object_class(tree, module, value_assign.type, object_class_names);
                     }
 
@@ -195,9 +195,9 @@ void remove_object_classes(Asn1Tree& tree, const std::set<std::string>& object_c
     }
 }
 
-std::set<std::string> get_object_class_names(const Asn1Tree& tree)
+std::unordered_set<std::string> get_object_class_names(const Asn1Tree& tree)
 {
-    std::set<std::string> object_class_names;
+    std::unordered_set<std::string> object_class_names;
 
     size_t old_number_of_names = 0;
     do
@@ -209,7 +209,7 @@ std::set<std::string> get_object_class_names(const Asn1Tree& tree)
             {
                 if (is_type(assignment) && is_defined(type(assignment)))
                 {
-                    const DefinedType& defined = absl::get<DefinedType>(type(assignment));
+                    const DefinedType& defined = std::get<DefinedType>(type(assignment));
                     if (!is_a_parameter(defined.type_reference, assignment.parameters))
                     {
                         const Assignment& inner_assignment = resolve(tree, module.module_reference, defined);
@@ -226,7 +226,7 @@ std::set<std::string> get_object_class_names(const Asn1Tree& tree)
                 }
                 if (is_value(assignment) && is_defined(value(assignment).type))
                 {
-                    const DefinedType& defined = absl::get<DefinedType>(value(assignment).type);
+                    const DefinedType& defined = std::get<DefinedType>(value(assignment).type);
                     if (!is_a_parameter(defined.type_reference, assignment.parameters))
                     {
                         const Assignment& inner_assignment = resolve(tree, module.module_reference, defined);
@@ -268,16 +268,16 @@ std::set<std::string> get_object_class_names(const Asn1Tree& tree)
 // Convert usage of object classes to standard ASN.1 types
 void resolve_object_classes(Asn1Tree& tree)
 {
-    std::set<std::string> object_class_names = get_object_class_names(tree);
+    std::unordered_set<std::string> object_class_names = get_object_class_names(tree);
 
     for (Module& module : tree.modules)
     {
         for (Assignment& assignment : module.assignments)
         {
-            if (absl::holds_alternative<TypeAssignment>(assignment.specific))
+            if (std::holds_alternative<TypeAssignment>(assignment.specific))
             {
 
-                object_class_to_concrete(tree, module, absl::get<TypeAssignment>(assignment.specific).type);
+                object_class_to_concrete(tree, module, std::get<TypeAssignment>(assignment.specific).type);
             }
         }
     }

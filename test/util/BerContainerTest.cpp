@@ -18,7 +18,8 @@ void empty_construction()
     CHECK(container.class_() == fast_ber::Class::universal);
     CHECK(container.tag() == 0);
     CHECK(container.content_length() == 0);
-    CHECK(container.ber() == absl::MakeSpan(expected.data(), expected.size()));
+    auto ber = container.ber();
+    CHECK(std::equal(ber.begin(), ber.end(), expected.begin(), expected.end()));
 }
 
 template <typename Container>
@@ -30,14 +31,17 @@ void resize_larger(size_t new_size = 99999)
     CHECK(container.view().is_valid());
     CHECK(container.tag() == 0);
     CHECK(container.content_length() == test_data.size());
-    CHECK(container.content() == test_data);
+    auto content = container.content();
+    CHECK(std::equal(content.begin(), content.end(), test_data.begin(), test_data.end()));
 
     container.resize_content(new_size);
 
     CHECK(container.view().is_valid());
     CHECK(container.tag() == 0);
     CHECK(container.content_length() == new_size);
-    CHECK(absl::MakeSpan(container.content_data(), test_data.size()) == test_data);
+
+    auto content_data = container.content_data();
+    CHECK(std::equal(content_data, content_data + test_data.size(), test_data.begin(), test_data.end()));
     CHECK(container.view().identifier() == fast_ber::RuntimeId{fast_ber::Class::universal, 0});
 }
 
@@ -52,14 +56,16 @@ void resize_smaller()
     CHECK(container.is_valid());
     CHECK(container.tag() == 0);
     CHECK(container.content_length() == test_data.size());
-    CHECK(container.content() == test_data);
+    auto content = container.content();
+    CHECK(std::equal(content.begin(), content.end(), test_data.begin(), test_data.end()));
 
     container.resize_content(new_size);
 
     CHECK(container.is_valid());
     CHECK(container.tag() == 0);
     CHECK(container.content_length() == new_size);
-    CHECK(container.content() == absl::MakeSpan(test_data.data(), new_size));
+    content = container.content();
+    CHECK(std::equal(content.begin(), content.end(), test_data.begin(), test_data.begin() + new_size));
     CHECK(container.view().identifier() == fast_ber::RuntimeId{fast_ber::Class::universal, 0});
 }
 
@@ -74,14 +80,16 @@ void resize_same_size()
     CHECK(container.is_valid());
     CHECK(container.tag() == 0);
     CHECK(container.content_length() == test_data.size());
-    CHECK(container.content() == test_data);
+    auto content = container.content();
+    CHECK(std::equal(content.begin(), content.end(), test_data.begin(), test_data.end()));
 
     container.resize_content(new_size);
 
     CHECK(container.is_valid());
     CHECK(container.tag() == 0);
     CHECK(container.content_length() == new_size);
-    CHECK(container.content() == test_data);
+    content = container.content();
+    CHECK(std::equal(content.begin(), content.end(), test_data.begin(), test_data.end()));
     CHECK(container.view().identifier() == fast_ber::RuntimeId{fast_ber::Class::universal, 0});
 }
 
@@ -104,13 +112,15 @@ void assign()
     container7 = std::move(Container{container1});
 
     CHECK(res.success);
-    CHECK(container1.content() == test_pdu);
-    CHECK(container2.content() == test_pdu);
-    CHECK(container3.content() == test_pdu);
-    CHECK(container4.content() == test_pdu);
-    CHECK(container5.content() == test_pdu);
-    CHECK(container6.content() == test_pdu);
-    CHECK(container7.content() == test_pdu);
+    auto cmp = [](auto l, auto r) { return std::equal(l.begin(), l.end(), r.begin(), r.end()); };
+
+    CHECK(cmp(container1.content(), test_pdu));
+    CHECK(cmp(container2.content(), test_pdu));
+    CHECK(cmp(container3.content(), test_pdu));
+    CHECK(cmp(container4.content(), test_pdu));
+    CHECK(cmp(container5.content(), test_pdu));
+    CHECK(cmp(container6.content(), test_pdu));
+    CHECK(cmp(container7.content(), test_pdu));
 
     CHECK(container1.view().identifier() == fast_ber::RuntimeId{fast_ber::Class::universal, 0});
     CHECK(container2.view().identifier() == fast_ber::RuntimeId{fast_ber::Class::universal, 0});
@@ -129,12 +139,12 @@ void encode_decode()
     Container container;
     container.assign_content(std::vector<uint8_t>(50, 0));
 
-    fast_ber::EncodeResult encode_res = container.encode(absl::Span<uint8_t>(buffer));
+    fast_ber::EncodeResult encode_res = container.encode(std::span<uint8_t>(buffer));
     fast_ber::DecodeResult decode_res = container.decode(fast_ber::BerView(buffer));
 
     REQUIRE(encode_res.success);
     REQUIRE(decode_res.success);
-    REQUIRE(encode_res.length == container.ber().length());
+    REQUIRE(encode_res.length == container.ber().size());
 }
 
 using SingleTestId = fast_ber::Id<fast_ber::Class::universal, 0>;
@@ -259,8 +269,12 @@ TEST_CASE("BerContainer: FixedIdBerContainer Different ID Assign")
     CHECK(LongTestId{}.outer_id() == long_id.view().identifier());
     CHECK(LongTestId{}.inner_id() == long_id.view().begin()->identifier());
 
-    CHECK(double_id.content() == single_id.content());
-    CHECK(long_id.content() == single_id.content());
+    auto dcon = double_id.content();
+    auto scon = single_id.content();
+    auto lcon = long_id.content();
+
+    CHECK(std::equal(dcon.begin(), dcon.end(), scon.begin(), scon.end()));
+    CHECK(std::equal(lcon.begin(), lcon.end(), scon.begin(), scon.end()));
 }
 
 TEST_CASE("BerContainer: SmallFixedIdBerContainer Different ID Assign")
@@ -287,6 +301,10 @@ TEST_CASE("BerContainer: SmallFixedIdBerContainer Different ID Assign")
     CHECK(LongTestId{}.outer_id() == long_id.view().identifier());
     CHECK(LongTestId{}.inner_id() == long_id.view().begin()->identifier());
 
-    CHECK(double_id.content() == single_id.content());
-    CHECK(long_id.content() == single_id.content());
+    auto dcon = double_id.content();
+    auto scon = single_id.content();
+    auto lcon = long_id.content();
+
+    CHECK(std::equal(dcon.begin(), dcon.end(), scon.begin(), scon.end()));
+    CHECK(std::equal(lcon.begin(), lcon.end(), scon.begin(), scon.end()));
 }

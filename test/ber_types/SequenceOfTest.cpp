@@ -18,8 +18,8 @@ void test_sequences(const std::initializer_list<fast_ber::SequenceOf<T, Identifi
         fast_ber::SequenceOf<T, Identifier> copy;
 
         size_t                 expected_size = encoded_length(sequence);
-        fast_ber::EncodeResult encode_result = fast_ber::encode(absl::MakeSpan(buffer.data(), buffer.size()), sequence);
-        fast_ber::BerViewIterator iter = fast_ber::BerViewIterator(absl::MakeSpan(buffer.data(), encode_result.length));
+        fast_ber::EncodeResult encode_result = fast_ber::encode(std::span(buffer.data(), buffer.size()), sequence);
+        fast_ber::BerViewIterator iter = fast_ber::BerViewIterator(std::span(buffer.data(), encode_result.length));
         fast_ber::DecodeResult    decode_result = fast_ber::decode(iter, copy);
 
         CHECK(encode_result.success);

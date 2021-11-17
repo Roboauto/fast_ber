@@ -1,6 +1,6 @@
 #pragma once
 
-#include "absl/types/span.h"
+#include <span>
 #include "fast_ber/ber_types/Identifier.hpp"
 #include "fast_ber/util/BerView.hpp"
 
@@ -13,7 +13,7 @@ struct DecodeResult
 };
 
 template <typename T>
-DecodeResult decode(absl::Span<const uint8_t> input, T& output) noexcept
+DecodeResult decode(std::span<const uint8_t> input, T& output) noexcept
 {
     return output.decode(BerView(input));
 }

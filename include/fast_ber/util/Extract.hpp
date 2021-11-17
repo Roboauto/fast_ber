@@ -4,32 +4,32 @@
 #include "fast_ber/ber_types/Construction.hpp"
 #include "fast_ber/ber_types/Tag.hpp"
 
-#include "absl/types/span.h"
+#include <span>
 
 namespace fast_ber
 {
 
 // Extract the construction of a ber packet
 // Return true on success, false on fail
-inline bool extract_construction(absl::Span<const uint8_t> input, Construction& construction) noexcept;
+inline bool extract_construction(std::span<const uint8_t> input, Construction& construction) noexcept;
 
 // Extract the class of a ber packet
 // Return true on success, false on fail
-inline bool extract_class(absl::Span<const uint8_t> input, Class& class_) noexcept;
+inline bool extract_class(std::span<const uint8_t> input, Class& class_) noexcept;
 
 // Extract the length of the tag field of a ber packet
 // Return length of the identifier octets on success, false on fail
-inline size_t extract_tag_length(absl::Span<const uint8_t> input, Tag& tag) noexcept;
+inline size_t extract_tag_length(std::span<const uint8_t> input, Tag& tag) noexcept;
 
 // Extract the tag of a ber packet
 // Return length of the identifier octets on success, false on fail
-inline size_t extract_tag(absl::Span<const uint8_t> input, Tag& tag) noexcept;
+inline size_t extract_tag(std::span<const uint8_t> input, Tag& tag) noexcept;
 
 // Extract the length of a ber packet
 // Return the length of the length octets on success, false on fail
-inline size_t extract_length(absl::Span<const uint8_t> input, size_t& length, size_t length_offset) noexcept;
+inline size_t extract_length(std::span<const uint8_t> input, size_t& length, size_t length_offset) noexcept;
 
-inline bool extract_construction(absl::Span<const uint8_t> input, Construction& construction) noexcept
+inline bool extract_construction(std::span<const uint8_t> input, Construction& construction) noexcept
 {
     if (input.size() == 0)
     {
@@ -40,7 +40,7 @@ inline bool extract_construction(absl::Span<const uint8_t> input, Construction& 
     return true;
 }
 
-inline bool extract_class(absl::Span<const uint8_t> input, Class& class_) noexcept
+inline bool extract_class(std::span<const uint8_t> input, Class& class_) noexcept
 {
     if (input.size() == 0)
     {
@@ -51,7 +51,7 @@ inline bool extract_class(absl::Span<const uint8_t> input, Class& class_) noexce
     return true;
 }
 
-inline size_t extract_tag_length(absl::Span<const uint8_t> input) noexcept
+inline size_t extract_tag_length(std::span<const uint8_t> input) noexcept
 {
     if (input.size() == 0)
     {
@@ -64,7 +64,7 @@ inline size_t extract_tag_length(absl::Span<const uint8_t> input) noexcept
     }
     else
     {
-        for (size_t i = 1; i < input.length(); i++)
+        for (size_t i = 1; i < input.size(); i++)
         {
             if ((input[i] & 0x80) == 0)
             {
@@ -75,7 +75,7 @@ inline size_t extract_tag_length(absl::Span<const uint8_t> input) noexcept
     }
 }
 
-inline size_t extract_tag(absl::Span<const uint8_t> input, Tag& tag) noexcept
+inline size_t extract_tag(std::span<const uint8_t> input, Tag& tag) noexcept
 {
     if (input.size() == 0)
     {
@@ -90,7 +90,7 @@ inline size_t extract_tag(absl::Span<const uint8_t> input, Tag& tag) noexcept
     else
     {
         tag = 0;
-        for (size_t i = 1; i < input.length(); i++)
+        for (size_t i = 1; i < input.size(); i++)
         {
             tag += (input[i] & 0x7F);
 
@@ -105,9 +105,9 @@ inline size_t extract_tag(absl::Span<const uint8_t> input, Tag& tag) noexcept
     }
 }
 
-inline size_t extract_length(absl::Span<const uint8_t> input, size_t& length, size_t length_offset) noexcept
+inline size_t extract_length(std::span<const uint8_t> input, size_t& length, size_t length_offset) noexcept
 {
-    input.remove_prefix(length_offset);
+    input = input.subspan(length_offset);
     if (input.size() == 0)
     {
         return 0;
@@ -120,7 +120,7 @@ inline size_t extract_length(absl::Span<const uint8_t> input, size_t& length, si
     }
 
     const size_t tag_length = input[0] & 0x7F;
-    if (tag_length > 8 || tag_length == 0 || tag_length + 1 > input.length())
+    if (tag_length > 8 || tag_length == 0 || tag_length + 1 > input.size())
     {
         return false;
     }

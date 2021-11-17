@@ -99,17 +99,17 @@ CodeBlock create_helper_functions_impl(const Asn1Tree&, const Module&, const Typ
 {
     if (is_sequence(type))
     {
-        const SequenceType& sequence = absl::get<SequenceType>(absl::get<BuiltinType>(type));
+        const SequenceType& sequence = std::get<SequenceType>(std::get<BuiltinType>(type));
         return create_collection_equality_operators(sequence, name);
     }
     else if (is_set(type))
     {
-        const SetType& set = absl::get<SetType>(absl::get<BuiltinType>(type));
+        const SetType& set = std::get<SetType>(std::get<BuiltinType>(type));
         return create_collection_equality_operators(set, name);
     }
     else if (is_enumerated(type))
     {
-        const EnumeratedType& e           = absl::get<EnumeratedType>(absl::get<BuiltinType>(type));
+        const EnumeratedType& e           = std::get<EnumeratedType>(std::get<BuiltinType>(type));
         const std::string     values_name = name + "Values";
 
         CodeBlock block;
@@ -138,7 +138,7 @@ CodeBlock create_helper_functions_impl(const Asn1Tree&, const Module&, const Typ
     }
     else if (is_choice(type))
     {
-        const ChoiceType& choice = absl::get<ChoiceType>(absl::get<BuiltinType>(type));
+        const ChoiceType& choice = std::get<ChoiceType>(std::get<BuiltinType>(type));
         return create_choice_helpers(choice, name);
     }
 
@@ -147,12 +147,12 @@ CodeBlock create_helper_functions_impl(const Asn1Tree&, const Module&, const Typ
 
 std::string create_helper_functions(const Asn1Tree& tree, const Module& module, const Assignment& assignment)
 {
-    if (!absl::holds_alternative<TypeAssignment>(assignment.specific))
+    if (!std::holds_alternative<TypeAssignment>(assignment.specific))
     {
         return {};
     }
 
-    const TypeAssignment& type_assignment = absl::get<TypeAssignment>(assignment.specific);
+    const TypeAssignment& type_assignment = std::get<TypeAssignment>(assignment.specific);
     CodeBlock             block;
 
     if (!is_generated(type_assignment.type))

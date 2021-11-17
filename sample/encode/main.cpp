@@ -17,7 +17,7 @@ int main()
     std::vector<uint8_t> buffer;
     buffer.resize(team.encoded_length());
 
-    const auto encode_result = fast_ber::encode(absl::Span<std::uint8_t>(buffer), team);
+    const auto encode_result = fast_ber::encode(std::span<std::uint8_t>(buffer), team);
     if (!encode_result.success)
     {
         std::cout << "Failed to encode data\n";

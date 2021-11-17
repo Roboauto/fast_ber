@@ -34,8 +34,8 @@ TEST_CASE("Enumerated: Encode Decode")
     TestEnum enum_one = TestEnum::Values::option_one;
     TestEnum enum_two = TestEnum::Values::option_three;
 
-    fast_ber::encode(absl::Span<uint8_t>(data), enum_one);
-    fast_ber::decode(absl::Span<const uint8_t>(data), enum_two);
+    fast_ber::encode(std::span<uint8_t>(data), enum_one);
+    fast_ber::decode(std::span<const uint8_t>(data), enum_two);
 
     REQUIRE(enum_one == enum_two);
 }

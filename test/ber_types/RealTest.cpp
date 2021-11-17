@@ -1,6 +1,6 @@
 #include "fast_ber/ber_types/Real.hpp"
 
-#include "absl/types/optional.h"
+#include <optional>
 
 #include <catch2/catch.hpp>
 
@@ -39,8 +39,8 @@ TEST_CASE("Real: Construction from double")
         fast_ber::Real<>                                                   real1(val);
         fast_ber::Real<fast_ber::Id<fast_ber::Class::context_specific, 2>> real2(real1);
         fast_ber::Real<fast_ber::Id<fast_ber::Class::context_specific, 4>> real3;
-        absl::optional<fast_ber::Real<>>                                   real4;
-        absl::optional<fast_ber::Real<>>                                   real5(real1);
+        std::optional<fast_ber::Real<>>                                   real4;
+        std::optional<fast_ber::Real<>>                                   real5(real1);
 
         real3 = real2;
         real4 = real3;

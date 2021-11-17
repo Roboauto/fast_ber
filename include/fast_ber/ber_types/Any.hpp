@@ -18,7 +18,7 @@ struct Any : AnyTypes
     using AnyTypes::operator=;
 
     std::size_t  encoded_length() const noexcept { return this->encoded_length_old(); }
-    EncodeResult encode(absl::Span<uint8_t> output) const noexcept { return this->encode_old(output); }
+    EncodeResult encode(std::span<uint8_t> output) const noexcept { return this->encode_old(output); }
     DecodeResult decode(BerView input) noexcept { return this->decode_old(input); }
 };
 

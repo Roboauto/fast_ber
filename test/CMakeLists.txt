@@ -39,10 +39,10 @@ aux_source_directory(ber_types BER_TYPES_TEST_SRC)
 aux_source_directory(util      UTIL_TEST_SRC)
 aux_source_directory(generated GENERATED_TEST_SRC)
 
-add_executable(fast_ber_compiler_tests  Test ${COMPILER_TEST_SRC})
-add_executable(fast_ber_ber_types_tests Test ${BER_TYPES_TEST_SRC})
-add_executable(fast_ber_util_tests      Test ${UTIL_TEST_SRC})
-add_executable(fast_ber_generated_tests Test ${GENERATED_TEST_SRC}
+add_executable(fast_ber_compiler_tests  Test.cpp ${COMPILER_TEST_SRC})
+add_executable(fast_ber_ber_types_tests Test.cpp ${BER_TYPES_TEST_SRC})
+add_executable(fast_ber_util_tests      Test.cpp ${UTIL_TEST_SRC})
+add_executable(fast_ber_generated_tests Test.cpp ${GENERATED_TEST_SRC}
                                                  autogen/choice.hpp
                                                  autogen/simple.hpp
                                                  autogen/tags.hpp

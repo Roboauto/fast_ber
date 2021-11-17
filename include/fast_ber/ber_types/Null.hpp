@@ -1,6 +1,6 @@
 #pragma once
 
-#include "absl/types/span.h"
+#include <span>
 
 #include "fast_ber/util/BerView.hpp"
 #include "fast_ber/util/DecodeHelpers.hpp"
@@ -48,10 +48,10 @@ class Null
         return false;
     }
     std::nullptr_t            value() { return nullptr; }
-    absl::Span<const uint8_t> ber() const { return absl::Span<const uint8_t>(m_data); }
+    std::span<const uint8_t> ber() const { return std::span<const uint8_t>(m_data); }
 
     constexpr static size_t encoded_length() noexcept;
-    EncodeResult            encode(absl::Span<uint8_t> buffer) const noexcept;
+    EncodeResult            encode(std::span<uint8_t> buffer) const noexcept;
     DecodeResult            decode(BerView buffer) noexcept;
 
     using AsnId = Identifier;
@@ -67,7 +67,7 @@ constexpr size_t Null<Identifier>::encoded_length() noexcept
 }
 
 template <typename Identifier>
-EncodeResult Null<Identifier>::encode(absl::Span<uint8_t> output) const noexcept
+EncodeResult Null<Identifier>::encode(std::span<uint8_t> output) const noexcept
 {
     if (output.size() < this->m_data.size())
     {

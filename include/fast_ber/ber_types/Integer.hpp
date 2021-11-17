@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "absl/types/span.h"
+#include <span>
 #include "fast_ber/ber_types/Class.hpp"
 #include "fast_ber/ber_types/Construction.hpp"
 #include "fast_ber/util/BerView.hpp"
@@ -20,14 +20,17 @@
 namespace fast_ber
 {
 
-inline bool   decode_integer(absl::Span<const uint8_t> input, int64_t& output) noexcept;
-inline size_t encode_integer(absl::Span<uint8_t> output, int64_t input) noexcept;
+inline bool   decode_integer(std::span<const uint8_t> input, int64_t& output) noexcept;
+inline size_t encode_integer(std::span<uint8_t> output, int64_t input) noexcept;
 
 template <typename Identifier = ExplicitId<UniversalTag::integer>>
 class Integer
 {
+    static constexpr uint8_t zero_ = 0x00;
   public:
-    Integer() noexcept : m_contents{{0x00}, ConstructionMethod::construct_with_provided_content} {}
+    Integer() noexcept : m_contents{std::span<const uint8_t>(&zero_, 1), ConstructionMethod::construct_with_provided_content}
+    {
+    }
     Integer(int64_t num) noexcept { assign(num); }
     Integer(BerView view) noexcept { decode(view); }
     template <typename Identifier2>
@@ -62,7 +65,7 @@ class Integer
     void assign(const Integer<Identifier2>& rhs) noexcept;
 
     size_t       encoded_length() const noexcept { return m_contents.ber_length(); }
-    EncodeResult encode(absl::Span<uint8_t> buffer) const noexcept { return m_contents.encode(buffer); }
+    EncodeResult encode(std::span<uint8_t> buffer) const noexcept { return m_contents.encode(buffer); }
     DecodeResult decode(BerView rhs) noexcept { return m_contents.decode(rhs); }
 
     template <typename Identifier2>
@@ -72,7 +75,7 @@ class Integer
     SmallFixedIdBerContainer<Identifier, sizeof(int64_t)> m_contents;
 };
 
-inline bool decode_integer(absl::Span<const uint8_t> input, int64_t& output) noexcept
+inline bool decode_integer(std::span<const uint8_t> input, int64_t& output) noexcept
 {
     if (input.size() == 0 || input.size() > 8)
     {
@@ -100,7 +103,7 @@ inline bool decode_integer(absl::Span<const uint8_t> input, int64_t& output) noe
     return true;
 }
 
-inline size_t encode_integer(absl::Span<uint8_t> output, int64_t input) noexcept
+inline size_t encode_integer(std::span<uint8_t> output, int64_t input) noexcept
 {
     std::array<uint8_t, sizeof(int64_t)> buffer{};
     std::memcpy(buffer.data(), &input, sizeof(int64_t));
@@ -173,7 +176,7 @@ inline Integer<Identifier>& Integer<Identifier>::operator=(const Integer<Identif
 template <typename Identifier>
 inline void Integer<Identifier>::assign(int64_t val) noexcept
 {
-    m_contents.resize_content(encode_integer(absl::Span<uint8_t>(m_contents.content_data(), sizeof(int64_t)), val));
+    m_contents.resize_content(encode_integer(std::span<uint8_t>(m_contents.content_data(), sizeof(int64_t)), val));
 }
 
 template <typename Identifier>

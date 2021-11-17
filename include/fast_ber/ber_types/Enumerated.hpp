@@ -20,7 +20,7 @@ class Enumerated
     {
         assign(rhs);
     }
-    explicit Enumerated(absl::Span<const uint8_t> ber_data) noexcept { decode(ber_data); }
+    explicit Enumerated(std::span<const uint8_t> ber_data) noexcept { decode(ber_data); }
 
     using Values = EnumeratedType;
 
@@ -62,7 +62,7 @@ class Enumerated
     friend class Enumerated;
 
     size_t       encoded_length() const noexcept;
-    EncodeResult encode(absl::Span<uint8_t> output) const noexcept;
+    EncodeResult encode(std::span<uint8_t> output) const noexcept;
     DecodeResult decode(BerView input) noexcept;
 
   private:
@@ -76,7 +76,7 @@ size_t Enumerated<EnumeratedType, Identifier>::encoded_length() const noexcept
 }
 
 template <typename EnumeratedType, typename Identifier>
-EncodeResult Enumerated<EnumeratedType, Identifier>::encode(absl::Span<uint8_t> output) const noexcept
+EncodeResult Enumerated<EnumeratedType, Identifier>::encode(std::span<uint8_t> output) const noexcept
 {
     return this->m_val.encode(output);
 }

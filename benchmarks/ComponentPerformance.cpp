@@ -25,7 +25,7 @@ void component_benchmark_encode(const T& type, const std::string& type_name)
     {
         for (int i = 0; i < iterations; i++)
         {
-            res = fast_ber::encode(absl::Span<uint8_t>(buffer), type);
+            res = fast_ber::encode(std::span<uint8_t>(buffer), type);
         }
     }
     REQUIRE(res.success);
@@ -35,7 +35,7 @@ template <typename T>
 void component_benchmark_decode(const T& type, const std::string& type_name)
 {
     std::array<uint8_t, 1000> buffer{};
-    fast_ber::EncodeResult    encode_result = fast_ber::encode(absl::Span<uint8_t>(buffer), type);
+    fast_ber::EncodeResult    encode_result = fast_ber::encode(std::span<uint8_t>(buffer), type);
 
     T decoded_copy;
 
@@ -44,7 +44,7 @@ void component_benchmark_decode(const T& type, const std::string& type_name)
     {
         for (int i = 0; i < iterations; i++)
         {
-            res = fast_ber::decode(absl::Span<uint8_t>(buffer.data(), encode_result.length), decoded_copy);
+            res = fast_ber::decode(std::span<uint8_t>(buffer.data(), encode_result.length), decoded_copy);
         }
     }
     REQUIRE(res.success);
@@ -88,7 +88,7 @@ TEST_CASE("Component Performance: Encode")
                                "ObjectIdentifier");
     component_benchmark_encode(fast_ber::Optional<fast_ber::OctetString<>>("hello!"), "Optional (String)");
     component_benchmark_encode(fast_ber::Optional<fast_ber::Integer<>>(500), "Optional (Integer)");
-    component_benchmark_encode(fast_ber::Optional<fast_ber::Integer<>>(absl::nullopt), "Optional (Empty)");
+    component_benchmark_encode(fast_ber::Optional<fast_ber::Integer<>>(std::nullopt), "Optional (Empty)");
     component_benchmark_encode(fast_ber::All::The_Choice(fast_ber::All::The_Choice::Member_two("hello!")),
                                "Choice (String)");
     component_benchmark_encode(fast_ber::All::The_Choice(5), "Choice (Integer)");
@@ -108,7 +108,7 @@ TEST_CASE("Component Performance: Decode")
                                "ObjectIdentifier");
     component_benchmark_decode(fast_ber::Optional<fast_ber::OctetString<>>("hello!"), "Optional (String)");
     component_benchmark_decode(fast_ber::Optional<fast_ber::Integer<>>(500), "Optional (Integer)");
-    component_benchmark_decode(fast_ber::Optional<fast_ber::Integer<>>(absl::nullopt), "Optional (Empty)");
+    component_benchmark_decode(fast_ber::Optional<fast_ber::Integer<>>(std::nullopt), "Optional (Empty)");
     component_benchmark_decode(fast_ber::All::The_Choice(fast_ber::All::The_Choice::Member_two("hello!")),
                                "Choice (String)");
     component_benchmark_decode(fast_ber::All::The_Choice(5), "Choice (Integer)");
@@ -128,7 +128,7 @@ TEST_CASE("Component Performance: Object Construction")
                                                                 "ObjectIdentifier");
     component_benchmark_construct<fast_ber::Optional<fast_ber::OctetString<>>>("hello!", "Optional (String)");
     component_benchmark_construct<fast_ber::Optional<fast_ber::Integer<>>>(500, "Optional (Integer)");
-    component_benchmark_construct<fast_ber::Optional<fast_ber::Integer<>>>(absl::nullopt, "Optional (Empty)");
+    component_benchmark_construct<fast_ber::Optional<fast_ber::Integer<>>>(std::nullopt, "Optional (Empty)");
     component_benchmark_construct<fast_ber::Choice<fast_ber::Choices<fast_ber::Integer<>, fast_ber::OctetString<>>>>(
         fast_ber::OctetString<>("hello!"), "Choice (String)");
     component_benchmark_construct<fast_ber::Choice<

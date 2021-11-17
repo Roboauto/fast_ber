@@ -9,8 +9,8 @@ TEST_CASE("Set: Empty")
     std::array<uint8_t, 100> buffer = {};
     fast_ber::Set_::Empty    set    = {};
 
-    fast_ber::EncodeResult encode_result = fast_ber::encode(absl::MakeSpan(buffer.data(), buffer.size()), set);
-    fast_ber::DecodeResult decode_result = fast_ber::decode(absl::MakeSpan(buffer.data(), buffer.size()), set);
+    fast_ber::EncodeResult encode_result = fast_ber::encode(std::span(buffer.data(), buffer.size()), set);
+    fast_ber::DecodeResult decode_result = fast_ber::decode(std::span(buffer.data(), buffer.size()), set);
 
     REQUIRE(encode_result.success);
     REQUIRE(decode_result.success);
@@ -24,8 +24,8 @@ TEST_CASE("Set: Round Trip")
 
     REQUIRE(set != copy);
 
-    fast_ber::EncodeResult encode_result = fast_ber::encode(absl::MakeSpan(buffer.data(), buffer.size()), set);
-    fast_ber::DecodeResult decode_result = fast_ber::decode(absl::MakeSpan(buffer.data(), buffer.size()), copy);
+    fast_ber::EncodeResult encode_result = fast_ber::encode(std::span(buffer.data(), buffer.size()), set);
+    fast_ber::DecodeResult decode_result = fast_ber::decode(std::span(buffer.data(), buffer.size()), copy);
 
     REQUIRE(encode_result.success);
     REQUIRE(decode_result.success);
@@ -41,8 +41,8 @@ TEST_CASE("Set: Round Trip Duplicate Tag Okay")
 
     REQUIRE(set != copy);
 
-    fast_ber::EncodeResult encode_result = fast_ber::encode(absl::MakeSpan(buffer.data(), buffer.size()), set);
-    fast_ber::DecodeResult decode_result = fast_ber::decode(absl::MakeSpan(buffer.data(), buffer.size()), copy);
+    fast_ber::EncodeResult encode_result = fast_ber::encode(std::span(buffer.data(), buffer.size()), set);
+    fast_ber::DecodeResult decode_result = fast_ber::decode(std::span(buffer.data(), buffer.size()), copy);
 
     REQUIRE(encode_result.success);
     REQUIRE(decode_result.success);
@@ -59,18 +59,18 @@ TEST_CASE("Set: Decode Ordered")
     fast_ber::Boolean<>      boolean    = true;
     fast_ber::UTF8String<>   utf_string = "Decode Ordered";
 
-    auto inner_buffer = absl::Span<uint8_t>(buffer);
+    auto inner_buffer = std::span<uint8_t>(buffer);
 
-    inner_buffer.remove_prefix(null.encode(inner_buffer).length);
-    inner_buffer.remove_prefix(integer.encode(inner_buffer).length);
-    inner_buffer.remove_prefix(boolean.encode(inner_buffer).length);
-    inner_buffer.remove_prefix(utf_string.encode(inner_buffer).length);
+    inner_buffer = inner_buffer.subspan(null.encode(inner_buffer).length);
+    inner_buffer = inner_buffer.subspan(integer.encode(inner_buffer).length);
+    inner_buffer = inner_buffer.subspan(boolean.encode(inner_buffer).length);
+    inner_buffer = inner_buffer.subspan(utf_string.encode(inner_buffer).length);
 
     size_t content_length = buffer.size() - inner_buffer.size();
-    fast_ber::wrap_with_ber_header(absl::Span<uint8_t>(buffer), content_length,
+    fast_ber::wrap_with_ber_header(std::span<uint8_t>(buffer), content_length,
                                    fast_ber::ExplicitId<fast_ber::UniversalTag::set>());
 
-    fast_ber::DecodeResult decode_result = fast_ber::decode(absl::MakeSpan(buffer.data(), buffer.size()), set);
+    fast_ber::DecodeResult decode_result = fast_ber::decode(std::span(buffer.data(), buffer.size()), set);
     REQUIRE(decode_result.success);
 
     REQUIRE(set.null == null);
@@ -89,18 +89,18 @@ TEST_CASE("Set: Decode Unordered")
     fast_ber::Boolean<>      boolean    = true;
     fast_ber::UTF8String<>   utf_string = "Decode Ordererd";
 
-    auto inner_buffer = absl::Span<uint8_t>(buffer);
+    auto inner_buffer = std::span<uint8_t>(buffer);
 
-    inner_buffer.remove_prefix(utf_string.encode(inner_buffer).length);
-    inner_buffer.remove_prefix(null.encode(inner_buffer).length);
-    inner_buffer.remove_prefix(integer.encode(inner_buffer).length);
-    inner_buffer.remove_prefix(boolean.encode(inner_buffer).length);
+    inner_buffer = inner_buffer.subspan(utf_string.encode(inner_buffer).length);
+    inner_buffer = inner_buffer.subspan(null.encode(inner_buffer).length);
+    inner_buffer = inner_buffer.subspan(integer.encode(inner_buffer).length);
+    inner_buffer = inner_buffer.subspan(boolean.encode(inner_buffer).length);
 
     size_t content_length = buffer.size() - inner_buffer.size();
-    fast_ber::wrap_with_ber_header(absl::Span<uint8_t>(buffer), content_length,
+    fast_ber::wrap_with_ber_header(std::span<uint8_t>(buffer), content_length,
                                    fast_ber::ExplicitId<fast_ber::UniversalTag::set>());
 
-    fast_ber::DecodeResult decode_result = fast_ber::decode(absl::MakeSpan(buffer.data(), buffer.size()), set);
+    fast_ber::DecodeResult decode_result = fast_ber::decode(std::span(buffer.data(), buffer.size()), set);
     REQUIRE(decode_result.success);
 
     REQUIRE(set.null == null);
@@ -118,17 +118,17 @@ TEST_CASE("Set: Decode Optional Members")
     fast_ber::Integer<>      integer    = 50;
     fast_ber::UTF8String<>   utf_string = "Decode Ordererd";
 
-    auto inner_buffer = absl::Span<uint8_t>(buffer);
+    auto inner_buffer = std::span<uint8_t>(buffer);
 
-    inner_buffer.remove_prefix(null.encode(inner_buffer).length);
-    inner_buffer.remove_prefix(integer.encode(inner_buffer).length);
-    inner_buffer.remove_prefix(utf_string.encode(inner_buffer).length);
+    inner_buffer = inner_buffer.subspan(null.encode(inner_buffer).length);
+    inner_buffer = inner_buffer.subspan(integer.encode(inner_buffer).length);
+    inner_buffer = inner_buffer.subspan(utf_string.encode(inner_buffer).length);
 
     size_t content_length = buffer.size() - inner_buffer.size();
-    fast_ber::wrap_with_ber_header(absl::Span<uint8_t>(buffer), content_length,
+    fast_ber::wrap_with_ber_header(std::span<uint8_t>(buffer), content_length,
                                    fast_ber::ExplicitId<fast_ber::UniversalTag::set>());
 
-    fast_ber::DecodeResult decode_result = fast_ber::decode(absl::MakeSpan(buffer.data(), buffer.size()), set);
+    fast_ber::DecodeResult decode_result = fast_ber::decode(std::span(buffer.data(), buffer.size()), set);
     REQUIRE(decode_result.success);
 
     REQUIRE(set.null == null);
@@ -147,18 +147,18 @@ TEST_CASE("Set: Decode Automatic Tags")
     fast_ber::Boolean<fast_ber::Id<fast_ber::Class::context_specific, 2>>    boolean    = 50;
     fast_ber::UTF8String<fast_ber::Id<fast_ber::Class::context_specific, 3>> utf_string = "Decode Ordererd";
 
-    auto inner_buffer = absl::Span<uint8_t>(buffer);
+    auto inner_buffer = std::span<uint8_t>(buffer);
 
-    inner_buffer.remove_prefix(null.encode(inner_buffer).length);
-    inner_buffer.remove_prefix(integer.encode(inner_buffer).length);
-    inner_buffer.remove_prefix(boolean.encode(inner_buffer).length);
-    inner_buffer.remove_prefix(utf_string.encode(inner_buffer).length);
+    inner_buffer = inner_buffer.subspan(null.encode(inner_buffer).length);
+    inner_buffer = inner_buffer.subspan(integer.encode(inner_buffer).length);
+    inner_buffer = inner_buffer.subspan(boolean.encode(inner_buffer).length);
+    inner_buffer = inner_buffer.subspan(utf_string.encode(inner_buffer).length);
 
     size_t content_length = buffer.size() - inner_buffer.size();
-    fast_ber::wrap_with_ber_header(absl::Span<uint8_t>(buffer), content_length,
+    fast_ber::wrap_with_ber_header(std::span<uint8_t>(buffer), content_length,
                                    fast_ber::ExplicitId<fast_ber::UniversalTag::set>());
 
-    fast_ber::DecodeResult decode_result = fast_ber::decode(absl::MakeSpan(buffer.data(), buffer.size()), set);
+    fast_ber::DecodeResult decode_result = fast_ber::decode(std::span(buffer.data(), buffer.size()), set);
     REQUIRE(decode_result.success);
 
     REQUIRE(set.null == null);
@@ -178,19 +178,19 @@ TEST_CASE("Set: Decode Extension")
     fast_ber::UTF8String<>            utf_string = "Decode Ordered";
     fast_ber::Real<>                  extension  = 55;
 
-    auto inner_buffer = absl::Span<uint8_t>(buffer);
+    auto inner_buffer = std::span<uint8_t>(buffer);
 
-    inner_buffer.remove_prefix(null.encode(inner_buffer).length);
-    inner_buffer.remove_prefix(integer.encode(inner_buffer).length);
-    inner_buffer.remove_prefix(boolean.encode(inner_buffer).length);
-    inner_buffer.remove_prefix(utf_string.encode(inner_buffer).length);
-    inner_buffer.remove_prefix(extension.encode(inner_buffer).length);
+    inner_buffer = inner_buffer.subspan(null.encode(inner_buffer).length);
+    inner_buffer = inner_buffer.subspan(integer.encode(inner_buffer).length);
+    inner_buffer = inner_buffer.subspan(boolean.encode(inner_buffer).length);
+    inner_buffer = inner_buffer.subspan(utf_string.encode(inner_buffer).length);
+    inner_buffer = inner_buffer.subspan(extension.encode(inner_buffer).length);
 
     size_t content_length = buffer.size() - inner_buffer.size();
-    fast_ber::wrap_with_ber_header(absl::Span<uint8_t>(buffer), content_length,
+    fast_ber::wrap_with_ber_header(std::span<uint8_t>(buffer), content_length,
                                    fast_ber::ExplicitId<fast_ber::UniversalTag::set>());
 
-    fast_ber::DecodeResult decode_result = fast_ber::decode(absl::MakeSpan(buffer.data(), buffer.size()), set);
+    fast_ber::DecodeResult decode_result = fast_ber::decode(std::span(buffer.data(), buffer.size()), set);
     REQUIRE(decode_result.success);
 
     REQUIRE(set.null == null);
@@ -208,17 +208,17 @@ TEST_CASE("Set: Decode Fail - Missing Members")
     fast_ber::Boolean<>      boolean    = false;
     fast_ber::UTF8String<>   utf_string = "Decode Ordererd";
 
-    auto inner_buffer = absl::Span<uint8_t>(buffer);
+    auto inner_buffer = std::span<uint8_t>(buffer);
 
-    inner_buffer.remove_prefix(null.encode(inner_buffer).length);
-    inner_buffer.remove_prefix(boolean.encode(inner_buffer).length);
-    inner_buffer.remove_prefix(utf_string.encode(inner_buffer).length);
+    inner_buffer = inner_buffer.subspan(null.encode(inner_buffer).length);
+    inner_buffer = inner_buffer.subspan(boolean.encode(inner_buffer).length);
+    inner_buffer = inner_buffer.subspan(utf_string.encode(inner_buffer).length);
 
     size_t content_length = buffer.size() - inner_buffer.size();
-    fast_ber::wrap_with_ber_header(absl::Span<uint8_t>(buffer), content_length,
+    fast_ber::wrap_with_ber_header(std::span<uint8_t>(buffer), content_length,
                                    fast_ber::ExplicitId<fast_ber::UniversalTag::set>());
 
-    fast_ber::DecodeResult decode_result = fast_ber::decode(absl::MakeSpan(buffer.data(), buffer.size()), set);
+    fast_ber::DecodeResult decode_result = fast_ber::decode(std::span(buffer.data(), buffer.size()), set);
     REQUIRE(!decode_result.success);
 }
 
@@ -232,18 +232,18 @@ TEST_CASE("Set: Decode Fail - Duplicate Members")
     fast_ber::Boolean<>      boolean    = false;
     fast_ber::UTF8String<>   utf_string = "Decode Ordererd";
 
-    auto inner_buffer = absl::Span<uint8_t>(buffer);
+    auto inner_buffer = std::span<uint8_t>(buffer);
 
-    inner_buffer.remove_prefix(null.encode(inner_buffer).length);
-    inner_buffer.remove_prefix(integer.encode(inner_buffer).length);
-    inner_buffer.remove_prefix(integer.encode(inner_buffer).length);
-    inner_buffer.remove_prefix(boolean.encode(inner_buffer).length);
-    inner_buffer.remove_prefix(utf_string.encode(inner_buffer).length);
+    inner_buffer = inner_buffer.subspan(null.encode(inner_buffer).length);
+    inner_buffer = inner_buffer.subspan(integer.encode(inner_buffer).length);
+    inner_buffer = inner_buffer.subspan(integer.encode(inner_buffer).length);
+    inner_buffer = inner_buffer.subspan(boolean.encode(inner_buffer).length);
+    inner_buffer = inner_buffer.subspan(utf_string.encode(inner_buffer).length);
 
     size_t content_length = buffer.size() - inner_buffer.size();
-    fast_ber::wrap_with_ber_header(absl::Span<uint8_t>(buffer), content_length,
+    fast_ber::wrap_with_ber_header(std::span<uint8_t>(buffer), content_length,
                                    fast_ber::ExplicitId<fast_ber::UniversalTag::set>());
 
-    fast_ber::DecodeResult decode_result = fast_ber::decode(absl::MakeSpan(buffer.data(), buffer.size()), set);
+    fast_ber::DecodeResult decode_result = fast_ber::decode(std::span(buffer.data(), buffer.size()), set);
     REQUIRE(!decode_result.success);
 }

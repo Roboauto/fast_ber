@@ -4,6 +4,13 @@
 
 #include <array>
 
+template <typename T, size_t n>
+bool operator==(std::span<T> l, std::array<uint8_t, n> r)
+{
+    return std::equal(l.begin(), l.end(), r.begin(), r.end());
+}
+
+
 const fast_ber::SGSN_2009A_CDR::SGSNPDPRecord test_record = {
     10,
     "123",
@@ -103,17 +110,17 @@ TEST_CASE("RealSchema: Encoding Default Constructed")
     fast_ber::SGSN_2009A_CDR::CAMELInformationPDP  pdp;
     fast_ber::SGSN_2009A_CDR::ManagementExtensions e;
 
-    REQUIRE(fast_ber::encode(absl::Span<uint8_t>(buffer), smtr).success);
-    REQUIRE(fast_ber::decode(absl::Span<uint8_t>(buffer), smtr).success);
+    REQUIRE(fast_ber::encode(std::span<uint8_t>(buffer), smtr).success);
+    REQUIRE(fast_ber::decode(std::span<uint8_t>(buffer), smtr).success);
 
-    REQUIRE(fast_ber::encode(absl::Span<uint8_t>(buffer), pdp).success);
-    REQUIRE(fast_ber::decode(absl::Span<uint8_t>(buffer), pdp).success);
+    REQUIRE(fast_ber::encode(std::span<uint8_t>(buffer), pdp).success);
+    REQUIRE(fast_ber::decode(std::span<uint8_t>(buffer), pdp).success);
 
-    REQUIRE(fast_ber::encode(absl::Span<uint8_t>(buffer), e).success);
-    REQUIRE(fast_ber::decode(absl::Span<uint8_t>(buffer), e).success);
+    REQUIRE(fast_ber::encode(std::span<uint8_t>(buffer), e).success);
+    REQUIRE(fast_ber::decode(std::span<uint8_t>(buffer), e).success);
 
-    REQUIRE(fast_ber::encode(absl::Span<uint8_t>(buffer), record).success);
-    REQUIRE(fast_ber::decode(absl::Span<uint8_t>(buffer), record).success);
+    REQUIRE(fast_ber::encode(std::span<uint8_t>(buffer), record).success);
+    REQUIRE(fast_ber::decode(std::span<uint8_t>(buffer), record).success);
 }
 
 TEST_CASE("RealSchema: Expected Output")
@@ -123,10 +130,10 @@ TEST_CASE("RealSchema: Expected Output")
     fast_ber::SGSN_2009A_CDR::CallEventRecord record;
 
     REQUIRE(record != fast_ber::SGSN_2009A_CDR::CallEventRecord{test_record});
-    REQUIRE(fast_ber::decode(absl::Span<const uint8_t>(test_record_expected_encoding), record).success);
+    REQUIRE(fast_ber::decode(std::span<const uint8_t>(test_record_expected_encoding), record).success);
     REQUIRE(record == fast_ber::SGSN_2009A_CDR::CallEventRecord{test_record});
 
-    REQUIRE(fast_ber::encode(absl::Span<uint8_t>(buffer), record).success);
+    REQUIRE(fast_ber::encode(std::span<uint8_t>(buffer), record).success);
     REQUIRE(fast_ber::encoded_length(record) == test_record_expected_encoding.size());
-    REQUIRE(absl::MakeSpan(buffer.data(), test_record_expected_encoding.size()) == test_record_expected_encoding);
+    REQUIRE(std::span(buffer.data(), test_record_expected_encoding.size()) == test_record_expected_encoding);
 }

@@ -236,81 +236,81 @@ std::string make_type_optional(const std::string& type, StorageMode mode)
 
 bool is_any(const Type& type)
 {
-    return absl::holds_alternative<BuiltinType>(type) && absl::holds_alternative<AnyType>(absl::get<BuiltinType>(type));
+    return std::holds_alternative<BuiltinType>(type) && std::holds_alternative<AnyType>(std::get<BuiltinType>(type));
 }
 
 bool is_bit_string(const Type& type)
 {
-    return absl::holds_alternative<BuiltinType>(type) &&
-           absl::holds_alternative<BitStringType>(absl::get<BuiltinType>(type));
+    return std::holds_alternative<BuiltinType>(type) &&
+           std::holds_alternative<BitStringType>(std::get<BuiltinType>(type));
 }
 
 bool is_set(const Type& type)
 {
-    return absl::holds_alternative<BuiltinType>(type) && absl::holds_alternative<SetType>(absl::get<BuiltinType>(type));
+    return std::holds_alternative<BuiltinType>(type) && std::holds_alternative<SetType>(std::get<BuiltinType>(type));
 }
 
 bool is_sequence(const Type& type)
 {
-    return absl::holds_alternative<BuiltinType>(type) &&
-           absl::holds_alternative<SequenceType>(absl::get<BuiltinType>(type));
+    return std::holds_alternative<BuiltinType>(type) &&
+           std::holds_alternative<SequenceType>(std::get<BuiltinType>(type));
 }
 
 bool is_set_of(const Type& type)
 {
-    return absl::holds_alternative<BuiltinType>(type) &&
-           absl::holds_alternative<SetOfType>(absl::get<BuiltinType>(type));
+    return std::holds_alternative<BuiltinType>(type) &&
+           std::holds_alternative<SetOfType>(std::get<BuiltinType>(type));
 }
 
 bool is_sequence_of(const Type& type)
 {
-    return absl::holds_alternative<BuiltinType>(type) &&
-           absl::holds_alternative<SequenceOfType>(absl::get<BuiltinType>(type));
+    return std::holds_alternative<BuiltinType>(type) &&
+           std::holds_alternative<SequenceOfType>(std::get<BuiltinType>(type));
 }
 
 bool is_enumerated(const Type& type)
 {
-    return absl::holds_alternative<BuiltinType>(type) &&
-           absl::holds_alternative<EnumeratedType>(absl::get<BuiltinType>(type));
+    return std::holds_alternative<BuiltinType>(type) &&
+           std::holds_alternative<EnumeratedType>(std::get<BuiltinType>(type));
 }
 
 bool is_choice(const Type& type)
 {
-    return absl::holds_alternative<BuiltinType>(type) &&
-           absl::holds_alternative<ChoiceType>(absl::get<BuiltinType>(type));
+    return std::holds_alternative<BuiltinType>(type) &&
+           std::holds_alternative<ChoiceType>(std::get<BuiltinType>(type));
 }
 
 bool is_prefixed(const Type& type)
 {
-    return absl::holds_alternative<BuiltinType>(type) &&
-           absl::holds_alternative<PrefixedType>(absl::get<BuiltinType>(type));
+    return std::holds_alternative<BuiltinType>(type) &&
+           std::holds_alternative<PrefixedType>(std::get<BuiltinType>(type));
 }
 
 bool is_integer(const Type& type)
 {
-    return absl::holds_alternative<BuiltinType>(type) &&
-           absl::holds_alternative<IntegerType>(absl::get<BuiltinType>(type));
+    return std::holds_alternative<BuiltinType>(type) &&
+           std::holds_alternative<IntegerType>(std::get<BuiltinType>(type));
 }
 
 bool is_octet_string(const Type& type)
 {
-    return absl::holds_alternative<BuiltinType>(type) &&
-           absl::holds_alternative<OctetStringType>(absl::get<BuiltinType>(type));
+    return std::holds_alternative<BuiltinType>(type) &&
+           std::holds_alternative<OctetStringType>(std::get<BuiltinType>(type));
 }
 
 bool is_boolean(const Type& type)
 {
-    return absl::holds_alternative<BuiltinType>(type) &&
-           absl::holds_alternative<BooleanType>(absl::get<BuiltinType>(type));
+    return std::holds_alternative<BuiltinType>(type) &&
+           std::holds_alternative<BooleanType>(std::get<BuiltinType>(type));
 }
 
 bool is_oid(const Type& type)
 {
-    return absl::holds_alternative<BuiltinType>(type) &&
-           absl::holds_alternative<ObjectIdentifierType>(absl::get<BuiltinType>(type));
+    return std::holds_alternative<BuiltinType>(type) &&
+           std::holds_alternative<ObjectIdentifierType>(std::get<BuiltinType>(type));
 }
 
-bool is_defined(const Type& type) { return absl::holds_alternative<DefinedType>(type); }
+bool is_defined(const Type& type) { return std::holds_alternative<DefinedType>(type); }
 
 // Generated types do not contain tagging info within the type, so need new type definitions to introduct a new tag
 bool is_generated(const Type& type)
@@ -318,7 +318,7 @@ bool is_generated(const Type& type)
     if (is_sequence(type) || is_set(type) || is_choice(type))
         return true;
     if (is_prefixed(type))
-        return is_generated(absl::get<PrefixedType>(absl::get<BuiltinType>(type)).tagged_type->type);
+        return is_generated(std::get<PrefixedType>(std::get<BuiltinType>(type)).tagged_type->type);
     return false;
 }
 

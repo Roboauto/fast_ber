@@ -4,7 +4,8 @@
 #include <tuple>
 #include <type_traits>
 
-#include <absl/types/variant.h>
+#include <variant>
+#include <string>
 
 namespace fast_ber
 {
@@ -47,7 +48,7 @@ struct AcceptedIndex : std::integral_constant<size_t, variant_npos>
 };
 
 template <typename T, typename Variant>
-struct AcceptedIndex<T, Variant, absl::void_t<decltype(ImaginaryFun<Variant>::Run(std::declval<T>(), {}))>>
+struct AcceptedIndex<T, Variant, std::void_t<decltype(ImaginaryFun<Variant>::Run(std::declval<T>(), {}))>>
     : decltype(ImaginaryFun<Variant>::Run(std::declval<T>(), {}))
 {
 };

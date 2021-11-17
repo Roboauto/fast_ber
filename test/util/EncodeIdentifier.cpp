@@ -9,40 +9,40 @@ TEST_CASE("EncodeIdentifiers: Tag length")
 {
     std::array<uint8_t, 10> buffer = {};
 
-    REQUIRE(fast_ber::encode_tag(absl::Span<uint8_t>(buffer.data(), buffer.size()), 0ll) == 1);
-    REQUIRE(fast_ber::encode_tag(absl::Span<uint8_t>(buffer.data(), buffer.size()), 30ll) == 1);
-    REQUIRE(fast_ber::encode_tag(absl::Span<uint8_t>(buffer.data(), buffer.size()), 31ll) == 2);
+    REQUIRE(fast_ber::encode_tag(std::span<uint8_t>(buffer.data(), buffer.size()), 0ll) == 1);
+    REQUIRE(fast_ber::encode_tag(std::span<uint8_t>(buffer.data(), buffer.size()), 30ll) == 1);
+    REQUIRE(fast_ber::encode_tag(std::span<uint8_t>(buffer.data(), buffer.size()), 31ll) == 2);
 
-    REQUIRE(fast_ber::encode_tag(absl::Span<uint8_t>(buffer.data(), buffer.size()), 0x1ll) == 1);
-    REQUIRE(fast_ber::encode_tag(absl::Span<uint8_t>(buffer.data(), buffer.size()), 0x7Fll) == 2);
-    REQUIRE(fast_ber::encode_tag(absl::Span<uint8_t>(buffer.data(), buffer.size()), 0x100ll) == 3);
-    REQUIRE(fast_ber::encode_tag(absl::Span<uint8_t>(buffer.data(), buffer.size()), 0x10000ll) == 4);
-    REQUIRE(fast_ber::encode_tag(absl::Span<uint8_t>(buffer.data(), buffer.size()), 0x1000000ll) == 5);
-    REQUIRE(fast_ber::encode_tag(absl::Span<uint8_t>(buffer.data(), buffer.size()), 0x100000000ll) == 6);
-    REQUIRE(fast_ber::encode_tag(absl::Span<uint8_t>(buffer.data(), buffer.size()), 0x10000000000ll) == 7);
-    REQUIRE(fast_ber::encode_tag(absl::Span<uint8_t>(buffer.data(), buffer.size()), 0x1000000000000ll) == 8);
-    REQUIRE(fast_ber::encode_tag(absl::Span<uint8_t>(buffer.data(), buffer.size()), 0x10000000000000ll) == 9);
-    REQUIRE(fast_ber::encode_tag(absl::Span<uint8_t>(buffer.data(), buffer.size()), 0x100000000000000ll) == 10);
+    REQUIRE(fast_ber::encode_tag(std::span<uint8_t>(buffer.data(), buffer.size()), 0x1ll) == 1);
+    REQUIRE(fast_ber::encode_tag(std::span<uint8_t>(buffer.data(), buffer.size()), 0x7Fll) == 2);
+    REQUIRE(fast_ber::encode_tag(std::span<uint8_t>(buffer.data(), buffer.size()), 0x100ll) == 3);
+    REQUIRE(fast_ber::encode_tag(std::span<uint8_t>(buffer.data(), buffer.size()), 0x10000ll) == 4);
+    REQUIRE(fast_ber::encode_tag(std::span<uint8_t>(buffer.data(), buffer.size()), 0x1000000ll) == 5);
+    REQUIRE(fast_ber::encode_tag(std::span<uint8_t>(buffer.data(), buffer.size()), 0x100000000ll) == 6);
+    REQUIRE(fast_ber::encode_tag(std::span<uint8_t>(buffer.data(), buffer.size()), 0x10000000000ll) == 7);
+    REQUIRE(fast_ber::encode_tag(std::span<uint8_t>(buffer.data(), buffer.size()), 0x1000000000000ll) == 8);
+    REQUIRE(fast_ber::encode_tag(std::span<uint8_t>(buffer.data(), buffer.size()), 0x10000000000000ll) == 9);
+    REQUIRE(fast_ber::encode_tag(std::span<uint8_t>(buffer.data(), buffer.size()), 0x100000000000000ll) == 10);
 }
 
 TEST_CASE("EncodeIdentifiers: Length length")
 {
     std::array<uint8_t, 10> buffer = {};
 
-    REQUIRE(fast_ber::encode_length(absl::Span<uint8_t>(buffer.data(), buffer.size()), 0ll) == 1);
-    REQUIRE(fast_ber::encode_length(absl::Span<uint8_t>(buffer.data(), buffer.size()), 0x7Fll) == 1);
-    REQUIRE(fast_ber::encode_length(absl::Span<uint8_t>(buffer.data(), buffer.size()), 0x80ll) == 2);
-    REQUIRE(fast_ber::encode_length(absl::Span<uint8_t>(buffer.data(), buffer.size()), 0xFFll) == 2);
+    REQUIRE(fast_ber::encode_length(std::span<uint8_t>(buffer.data(), buffer.size()), 0ll) == 1);
+    REQUIRE(fast_ber::encode_length(std::span<uint8_t>(buffer.data(), buffer.size()), 0x7Fll) == 1);
+    REQUIRE(fast_ber::encode_length(std::span<uint8_t>(buffer.data(), buffer.size()), 0x80ll) == 2);
+    REQUIRE(fast_ber::encode_length(std::span<uint8_t>(buffer.data(), buffer.size()), 0xFFll) == 2);
 
-    REQUIRE(fast_ber::encode_length(absl::Span<uint8_t>(buffer.data(), buffer.size()), 0x1ll) == 1);
-    REQUIRE(fast_ber::encode_length(absl::Span<uint8_t>(buffer.data(), buffer.size()), 0xF0ll) == 2);
-    REQUIRE(fast_ber::encode_length(absl::Span<uint8_t>(buffer.data(), buffer.size()), 0x100ll) == 3);
-    REQUIRE(fast_ber::encode_length(absl::Span<uint8_t>(buffer.data(), buffer.size()), 0x10000ll) == 4);
-    REQUIRE(fast_ber::encode_length(absl::Span<uint8_t>(buffer.data(), buffer.size()), 0x1000000ll) == 5);
-    REQUIRE(fast_ber::encode_length(absl::Span<uint8_t>(buffer.data(), buffer.size()), 0x100000000ll) == 6);
-    REQUIRE(fast_ber::encode_length(absl::Span<uint8_t>(buffer.data(), buffer.size()), 0x10000000000ll) == 7);
-    REQUIRE(fast_ber::encode_length(absl::Span<uint8_t>(buffer.data(), buffer.size()), 0x1000000000000ll) == 8);
-    REQUIRE(fast_ber::encode_length(absl::Span<uint8_t>(buffer.data(), buffer.size()), 0x100000000000000ll) == 9);
+    REQUIRE(fast_ber::encode_length(std::span<uint8_t>(buffer.data(), buffer.size()), 0x1ll) == 1);
+    REQUIRE(fast_ber::encode_length(std::span<uint8_t>(buffer.data(), buffer.size()), 0xF0ll) == 2);
+    REQUIRE(fast_ber::encode_length(std::span<uint8_t>(buffer.data(), buffer.size()), 0x100ll) == 3);
+    REQUIRE(fast_ber::encode_length(std::span<uint8_t>(buffer.data(), buffer.size()), 0x10000ll) == 4);
+    REQUIRE(fast_ber::encode_length(std::span<uint8_t>(buffer.data(), buffer.size()), 0x1000000ll) == 5);
+    REQUIRE(fast_ber::encode_length(std::span<uint8_t>(buffer.data(), buffer.size()), 0x100000000ll) == 6);
+    REQUIRE(fast_ber::encode_length(std::span<uint8_t>(buffer.data(), buffer.size()), 0x10000000000ll) == 7);
+    REQUIRE(fast_ber::encode_length(std::span<uint8_t>(buffer.data(), buffer.size()), 0x1000000000000ll) == 8);
+    REQUIRE(fast_ber::encode_length(std::span<uint8_t>(buffer.data(), buffer.size()), 0x100000000000000ll) == 9);
 }
 
 TEST_CASE("EncodeIdentifiers: Creating tags")
@@ -59,9 +59,9 @@ TEST_CASE("EncodeIdentifiers: Creating tags")
         INFO(test_val);
 
         size_t expected_length = fast_ber::encoded_tag_length(test_val);
-        size_t actual_length   = fast_ber::encode_tag(absl::Span<uint8_t>(buffer.data(), buffer.size()), test_val);
+        size_t actual_length   = fast_ber::encode_tag(std::span<uint8_t>(buffer.data(), buffer.size()), test_val);
         REQUIRE(expected_length == actual_length);
-        REQUIRE(fast_ber::extract_tag(absl::Span<uint8_t>(buffer.data(), buffer.size()), tag));
+        REQUIRE(fast_ber::extract_tag(std::span<uint8_t>(buffer.data(), buffer.size()), tag));
         REQUIRE(test_val == tag);
     }
 }
@@ -79,8 +79,8 @@ TEST_CASE("EncodeIdentifiers: Creating lengths")
         size_t length = 0;
         INFO(test_val);
 
-        REQUIRE(fast_ber::encode_length(absl::Span<uint8_t>(buffer.data(), buffer.size()), test_val));
-        REQUIRE(fast_ber::extract_length(absl::Span<uint8_t>(buffer.data(), buffer.size()), length, 0));
+        REQUIRE(fast_ber::encode_length(std::span<uint8_t>(buffer.data(), buffer.size()), test_val));
+        REQUIRE(fast_ber::extract_length(std::span<uint8_t>(buffer.data(), buffer.size()), length, 0));
         REQUIRE(test_val == length);
     }
 }
@@ -93,7 +93,7 @@ TEST_CASE("EncodeIdentifiers: Tags - round trip")
         fast_ber::Tag out = -1;
 
         size_t length = fast_ber::encoded_tag_length(i);
-        REQUIRE(fast_ber::encode_tag(absl::Span<uint8_t>(buffer), i) == length);
+        REQUIRE(fast_ber::encode_tag(std::span<uint8_t>(buffer), i) == length);
         REQUIRE(fast_ber::extract_tag(buffer, out) == length);
         REQUIRE(out == i);
     }

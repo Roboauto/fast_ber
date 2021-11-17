@@ -17,8 +17,8 @@ TEST_CASE("Parameterized Types: Encode and decode parameterized types")
     one.a = 5;
     one.b = "param";
 
-    fast_ber::EncodeResult encode_result = fast_ber::encode(absl::MakeSpan(buffer.data(), buffer.size()), one);
-    fast_ber::DecodeResult decode_result = fast_ber::decode(absl::MakeSpan(buffer.data(), buffer.size()), two);
+    fast_ber::EncodeResult encode_result = fast_ber::encode(std::span(buffer.data(), buffer.size()), one);
+    fast_ber::DecodeResult decode_result = fast_ber::decode(std::span(buffer.data(), buffer.size()), two);
 
     REQUIRE(encode_result.success);
     REQUIRE(decode_result.success);

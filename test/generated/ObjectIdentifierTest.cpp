@@ -10,15 +10,15 @@
 void test_encoding(const fast_ber::ObjectIdentifier<>& oid, const std::vector<uint8_t>& expected)
 {
     std::vector<uint8_t>          buffer(200, 0x0);
-    const fast_ber::EncodeResult& result = fast_ber::encode(absl::Span<uint8_t>(buffer), oid);
+    const fast_ber::EncodeResult& result = fast_ber::encode(std::span<uint8_t>(buffer), oid);
     REQUIRE(result.success);
-    REQUIRE(absl::Span<const uint8_t>(buffer.data(), result.length) == expected);
+    REQUIRE(std::equal(buffer.data(), buffer.data() + result.length, expected.begin(), expected.end()));
 }
 
 void test_decoding(const fast_ber::ObjectIdentifier<>& expected_oid, const std::vector<uint8_t>& data)
 {
     fast_ber::ObjectIdentifier<>  decoded_oid;
-    const fast_ber::DecodeResult& result = fast_ber::decode(absl::Span<const uint8_t>(data), decoded_oid);
+    const fast_ber::DecodeResult& result = fast_ber::decode(std::span<const uint8_t>(data), decoded_oid);
     REQUIRE(result.success);
     REQUIRE(decoded_oid == expected_oid);
 }

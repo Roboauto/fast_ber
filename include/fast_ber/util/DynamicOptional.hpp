@@ -1,13 +1,13 @@
 ﻿#pragma once
 
-#include "absl/memory/memory.h"
-#include "absl/types/optional.h"
+#include <memory>
+#include <optional>
 
 namespace fast_ber
 {
 
-using Empty                 = absl::nullopt_t;
-constexpr static auto empty = absl::nullopt;
+using Empty                 = std::nullopt_t;
+constexpr static auto empty = std::nullopt;
 
 template <typename T>
 class DynamicOptional
@@ -23,25 +23,25 @@ class DynamicOptional
 
     template <typename U = T,
               typename std::enable_if<
-                  absl::conjunction<absl::negation<std::is_same<absl::in_place_t, typename std::decay<U>::type>>,
-                                    absl::negation<std::is_same<DynamicOptional<T>, typename std::decay<U>::type>>,
+                  std::conjunction<std::negation<std::is_same<std::in_place_t, typename std::decay<U>::type>>,
+                                    std::negation<std::is_same<DynamicOptional<T>, typename std::decay<U>::type>>,
                                     std::is_convertible<U&&, T>, std::is_constructible<T, U&&>>::value,
                   bool>::type = false>
-    DynamicOptional(const U& t) : m_val(absl::make_unique<T>(t))
+    DynamicOptional(const U& t) : m_val(std::make_unique<T>(t))
     {
     }
 
     template <typename T2>
     DynamicOptional& operator=(const T2& t2)
     {
-        m_val = absl::make_unique<T>(t2);
+        m_val = std::make_unique<T>(t2);
         return *this;
     }
     DynamicOptional& operator=(const DynamicOptional& rhs)
     {
         if (rhs.m_val)
         {
-            m_val = absl::make_unique<T>(*rhs.m_val);
+            m_val = std::make_unique<T>(*rhs.m_val);
         }
         else
         {
@@ -70,7 +70,7 @@ class DynamicOptional
     template <typename... Args>
     T& emplace(Args&&... args)
     {
-        m_val = absl::make_unique<T>(args...);
+        m_val = std::make_unique<T>(args...);
         return *m_val;
     }
     bool has_value() const noexcept { return bool(m_val); }

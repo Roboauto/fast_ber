@@ -904,7 +904,7 @@ DefinedType:
     ExternalTypeReference
     { $$ = $1; }
 |   typereference
-    { $$ = DefinedType{absl::nullopt, $1, {}}; }
+    { $$ = DefinedType{std::nullopt, $1, {}}; }
 |   ParameterizedType
     { $$ = $1; }
 //|   ParameterizedValueSetType;
@@ -917,7 +917,7 @@ DefinedValue:
 
 ParameterizedType:
     SimpleDefinedType "{" ActualParameterList "}"
-    { $$ = DefinedType{ absl::nullopt, $1, $3}; }
+    { $$ = DefinedType{ std::nullopt, $1, $3}; }
 
 ParameterizedValue:
     SimpleDefinedValue "{" ActualParameterList "}"
@@ -1259,21 +1259,21 @@ ComponentTypeList:
 ComponentType:
     Type
     { std::cerr << context_.location << " WARNING: unnamed type\n";
-      $$ = ComponentType{{gen_anon_member_name(), $1}, false, absl::nullopt, absl::nullopt, StorageMode::static_ }; }
+      $$ = ComponentType{{gen_anon_member_name(), $1}, false, std::nullopt, std::nullopt, StorageMode::static_ }; }
 |   Type OPTIONAL
     { std::cerr << context_.location << " WARNING: unnamed type\n";
-      $$ = ComponentType{{gen_anon_member_name(), $1}, true, absl::nullopt, absl::nullopt, StorageMode::static_ }; }
+      $$ = ComponentType{{gen_anon_member_name(), $1}, true, std::nullopt, std::nullopt, StorageMode::static_ }; }
 |   Type DEFAULT SingleValue
-    { $$ = ComponentType{{gen_anon_member_name(), $1}, false, $3, absl::nullopt, StorageMode::static_ };
+    { $$ = ComponentType{{gen_anon_member_name(), $1}, false, $3, std::nullopt, StorageMode::static_ };
       std::cerr << context_.location << " WARNING: unnamed type\n"; }
 |   NamedType
-    { $$ = ComponentType{$1, false, absl::nullopt, absl::nullopt, StorageMode::static_ }; }
+    { $$ = ComponentType{$1, false, std::nullopt, std::nullopt, StorageMode::static_ }; }
 |   NamedType OPTIONAL
-    { $$ = ComponentType{$1, true, absl::nullopt, absl::nullopt, StorageMode::static_ }; }
+    { $$ = ComponentType{$1, true, std::nullopt, std::nullopt, StorageMode::static_ }; }
 |   NamedType DEFAULT SingleValue
-    { $$ = ComponentType{$1, false, $3, absl::nullopt, StorageMode::static_ }; }
+    { $$ = ComponentType{$1, false, $3, std::nullopt, StorageMode::static_ }; }
 |   COMPONENTS OF Type
-    { $$ = ComponentType{{}, false, absl::nullopt, $3, StorageMode::static_}; }
+    { $$ = ComponentType{{}, false, std::nullopt, $3, StorageMode::static_}; }
 
 SequenceValue:
     "{" ComponentValueList "}"

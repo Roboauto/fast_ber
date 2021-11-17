@@ -100,7 +100,7 @@ std::ostream& operator<<(std::ostream& os, BerView view) noexcept
                     os << OctetString<>(view.content());
                 }
             }
-            catch (const std::exception& e)
+            catch (const std::exception&)
             {
                 os << OctetString<>(view.content());
             }

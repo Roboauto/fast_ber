@@ -3,7 +3,7 @@
 #include "fast_ber/compiler/Identifier.hpp"
 #include "fast_ber/compiler/ResolveType.hpp"
 
-#include "absl/container/flat_hash_set.h"
+#include <set>
 
 #include <iostream>
 
@@ -19,7 +19,7 @@ std::string value_type(const AnyType&, const Module&, const Asn1Tree&, const std
 }
 std::string value_type(const BitStringType&, const Module&, const Asn1Tree&, const std::string&, const std::string&)
 {
-    return "absl::string_view";
+    return "std::string_view";
 }
 std::string value_type(const BooleanType&, const Module&, const Asn1Tree&, const std::string&, const std::string&)
 {
@@ -28,7 +28,7 @@ std::string value_type(const BooleanType&, const Module&, const Asn1Tree&, const
 std::string value_type(const CharacterStringType&, const Module&, const Asn1Tree&, const std::string&,
                        const std::string&)
 {
-    return "absl::string_view";
+    return "std::string_view";
 }
 std::string value_type(const ChoiceType&, const Module&, const Asn1Tree&, const std::string& type_name,
                        const std::string& identifier_override)
@@ -105,7 +105,7 @@ std::string value_type(const ObjectIdentifierType&, const Module&, const Asn1Tre
 }
 std::string value_type(const OctetStringType&, const Module&, const Asn1Tree&, const std::string&, const std::string&)
 {
-    return "absl::string_view";
+    return "std::string_view";
 }
 std::string value_type(const RealType&, const Module&, const Asn1Tree&, const std::string&, const std::string&)
 {
@@ -222,11 +222,11 @@ std::string value_type(const BuiltinType& type, const Module& module, const Asn1
                        const std::string& type_name, const std::string& identifier_override)
 {
     ValueTypeHelper string_helper{module, tree, type_name, identifier_override};
-    return absl::visit(string_helper, type);
+    return std::visit(string_helper, type);
 }
 std::string value_type(const Type& type, const Module& module, const Asn1Tree& tree, const std::string& type_name,
                        const std::string& identifier_override)
 {
     ValueTypeHelper string_helper{module, tree, type_name, identifier_override};
-    return absl::visit(string_helper, type);
+    return std::visit(string_helper, type);
 }

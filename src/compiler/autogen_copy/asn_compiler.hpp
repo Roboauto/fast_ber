@@ -8469,7 +8469,7 @@ namespace yy {
 
   case 196:
 #line 907 "/home/styler/git/fast_ber/src/compiler/asn_compiler.yacc" // lalr1.cc:919
-    { yylhs.value.as < DefinedType > () = DefinedType{absl::nullopt, yystack_[0].value.as < std::string > (), {}}; }
+    { yylhs.value.as < DefinedType > () = DefinedType{std::nullopt, yystack_[0].value.as < std::string > (), {}}; }
 #line 8472 "/home/styler/git/fast_ber/build/src/autogen/asn_compiler.re" // lalr1.cc:919
     break;
 
@@ -8487,7 +8487,7 @@ namespace yy {
 
   case 200:
 #line 920 "/home/styler/git/fast_ber/src/compiler/asn_compiler.yacc" // lalr1.cc:919
-    { yylhs.value.as < DefinedType > () = DefinedType{ absl::nullopt, yystack_[3].value.as < std::string > (), yystack_[1].value.as < std::vector<Type> > ()}; }
+    { yylhs.value.as < DefinedType > () = DefinedType{ std::nullopt, yystack_[3].value.as < std::string > (), yystack_[1].value.as < std::vector<Type> > ()}; }
 #line 8490 "/home/styler/git/fast_ber/build/src/autogen/asn_compiler.re" // lalr1.cc:919
     break;
 
@@ -9123,45 +9123,45 @@ namespace yy {
   case 326:
 #line 1261 "/home/styler/git/fast_ber/src/compiler/asn_compiler.yacc" // lalr1.cc:919
     { std::cerr << context_.location << " WARNING: unnamed type\n";
-      yylhs.value.as < ComponentType > () = ComponentType{{gen_anon_member_name(), yystack_[0].value.as < Type > ()}, false, absl::nullopt, absl::nullopt, StorageMode::static_ }; }
+      yylhs.value.as < ComponentType > () = ComponentType{{gen_anon_member_name(), yystack_[0].value.as < Type > ()}, false, std::nullopt, std::nullopt, StorageMode::static_ }; }
 #line 9126 "/home/styler/git/fast_ber/build/src/autogen/asn_compiler.re" // lalr1.cc:919
     break;
 
   case 327:
 #line 1264 "/home/styler/git/fast_ber/src/compiler/asn_compiler.yacc" // lalr1.cc:919
     { std::cerr << context_.location << " WARNING: unnamed type\n";
-      yylhs.value.as < ComponentType > () = ComponentType{{gen_anon_member_name(), yystack_[1].value.as < Type > ()}, true, absl::nullopt, absl::nullopt, StorageMode::static_ }; }
+      yylhs.value.as < ComponentType > () = ComponentType{{gen_anon_member_name(), yystack_[1].value.as < Type > ()}, true, std::nullopt, std::nullopt, StorageMode::static_ }; }
 #line 9133 "/home/styler/git/fast_ber/build/src/autogen/asn_compiler.re" // lalr1.cc:919
     break;
 
   case 328:
 #line 1267 "/home/styler/git/fast_ber/src/compiler/asn_compiler.yacc" // lalr1.cc:919
-    { yylhs.value.as < ComponentType > () = ComponentType{{gen_anon_member_name(), yystack_[2].value.as < Type > ()}, false, yystack_[0].value.as < Value > (), absl::nullopt, StorageMode::static_ };
+    { yylhs.value.as < ComponentType > () = ComponentType{{gen_anon_member_name(), yystack_[2].value.as < Type > ()}, false, yystack_[0].value.as < Value > (), std::nullopt, StorageMode::static_ };
       std::cerr << context_.location << " WARNING: unnamed type\n"; }
 #line 9140 "/home/styler/git/fast_ber/build/src/autogen/asn_compiler.re" // lalr1.cc:919
     break;
 
   case 329:
 #line 1270 "/home/styler/git/fast_ber/src/compiler/asn_compiler.yacc" // lalr1.cc:919
-    { yylhs.value.as < ComponentType > () = ComponentType{yystack_[0].value.as < NamedType > (), false, absl::nullopt, absl::nullopt, StorageMode::static_ }; }
+    { yylhs.value.as < ComponentType > () = ComponentType{yystack_[0].value.as < NamedType > (), false, std::nullopt, std::nullopt, StorageMode::static_ }; }
 #line 9146 "/home/styler/git/fast_ber/build/src/autogen/asn_compiler.re" // lalr1.cc:919
     break;
 
   case 330:
 #line 1272 "/home/styler/git/fast_ber/src/compiler/asn_compiler.yacc" // lalr1.cc:919
-    { yylhs.value.as < ComponentType > () = ComponentType{yystack_[1].value.as < NamedType > (), true, absl::nullopt, absl::nullopt, StorageMode::static_ }; }
+    { yylhs.value.as < ComponentType > () = ComponentType{yystack_[1].value.as < NamedType > (), true, std::nullopt, std::nullopt, StorageMode::static_ }; }
 #line 9152 "/home/styler/git/fast_ber/build/src/autogen/asn_compiler.re" // lalr1.cc:919
     break;
 
   case 331:
 #line 1274 "/home/styler/git/fast_ber/src/compiler/asn_compiler.yacc" // lalr1.cc:919
-    { yylhs.value.as < ComponentType > () = ComponentType{yystack_[2].value.as < NamedType > (), false, yystack_[0].value.as < Value > (), absl::nullopt, StorageMode::static_ }; }
+    { yylhs.value.as < ComponentType > () = ComponentType{yystack_[2].value.as < NamedType > (), false, yystack_[0].value.as < Value > (), std::nullopt, StorageMode::static_ }; }
 #line 9158 "/home/styler/git/fast_ber/build/src/autogen/asn_compiler.re" // lalr1.cc:919
     break;
 
   case 332:
 #line 1276 "/home/styler/git/fast_ber/src/compiler/asn_compiler.yacc" // lalr1.cc:919
-    { yylhs.value.as < ComponentType > () = ComponentType{{}, false, absl::nullopt, yystack_[0].value.as < Type > (), StorageMode::static_}; }
+    { yylhs.value.as < ComponentType > () = ComponentType{{}, false, std::nullopt, yystack_[0].value.as < Type > (), StorageMode::static_}; }
 #line 9164 "/home/styler/git/fast_ber/build/src/autogen/asn_compiler.re" // lalr1.cc:919
     break;
 

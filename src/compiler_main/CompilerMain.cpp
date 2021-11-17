@@ -38,14 +38,14 @@ std::string create_assignment(const Asn1Tree& tree, const Module& module, const 
 {
     try
     {
-        if (absl::holds_alternative<ValueAssignment>(assignment.specific)) // Value assignment
+        if (std::holds_alternative<ValueAssignment>(assignment.specific)) // Value assignment
         {
             log_debug(tree, "Creating value assignment: " + module.module_reference + "." + assignment.name);
 
-            const ValueAssignment& value_assign = absl::get<ValueAssignment>(assignment.specific);
+            const ValueAssignment& value_assign = std::get<ValueAssignment>(assignment.specific);
             const Type&            assigned_to_type =
                 (is_defined(value_assign.type))
-                               ? type(resolve(tree, module.module_reference, absl::get<DefinedType>(value_assign.type)))
+                               ? type(resolve(tree, module.module_reference, std::get<DefinedType>(value_assign.type)))
                                : value_assign.type;
 
             std::string constness =
@@ -57,13 +57,13 @@ std::string create_assignment(const Asn1Tree& tree, const Module& module, const 
             result += value_as_string(NamedType{assignment.name, assigned_to_type}, value_assign.value) + ";\n";
             return result;
         }
-        else if (absl::holds_alternative<TypeAssignment>(assignment.specific))
+        else if (std::holds_alternative<TypeAssignment>(assignment.specific))
         {
             log_debug(tree, "Creating type assignment: " + module.module_reference + "." + assignment.name);
 
             return create_type_assignment(assignment, module, tree).to_string() + '\n';
         }
-        else if (absl::holds_alternative<ObjectClassAssignment>(assignment.specific))
+        else if (std::holds_alternative<ObjectClassAssignment>(assignment.specific))
         {
             throw("Compiler Error: ObjectClassAssignment should be resolved: " + assignment.name);
         }
@@ -121,11 +121,11 @@ std::string create_fwd_declarations(const Asn1Tree& tree, const Module& module)
 
     for (const Assignment& assignment : module.assignments)
     {
-        if (absl::holds_alternative<TypeAssignment>(assignment.specific))
+        if (std::holds_alternative<TypeAssignment>(assignment.specific))
         {
             log_debug(tree, "Creating forward definition: " + module.module_reference + "." + assignment.name);
             output +=
-                create_type_fwd(assignment.name, absl::get<TypeAssignment>(assignment.specific).type, module, tree);
+                create_type_fwd(assignment.name, std::get<TypeAssignment>(assignment.specific).type, module, tree);
         }
     }
 
