@@ -6,22 +6,22 @@ if(NOT SKIP_AUTO_GENERATION)
 
     # Build re2c
     add_custom_command(
-        OUTPUT ${CMAKE_SOURCE_DIR}/3rd_party/re2c/re2c
-        COMMAND cd ${CMAKE_SOURCE_DIR}/3rd_party/re2c && ./autogen.sh && ./configure && make
+        OUTPUT ${PROJECT_SOURCE_DIR}/3rd_party/re2c/re2c
+        COMMAND cd ${PROJECT_SOURCE_DIR}/3rd_party/re2c && ./autogen.sh && ./configure && make
     )
 
     # Generate fast_ber compiler using bison / re2c
     add_custom_command(
         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/autogen/asn_compiler.hpp
         BYPRODUCTS ${CMAKE_BINARY_DIR}/autogen/asn_compiler.re
-        DEPENDS ${CMAKE_SOURCE_DIR}/src/compiler/asn_compiler.yacc ${CMAKE_SOURCE_DIR}/3rd_party/re2c/re2c
+        DEPENDS ${PROJECT_SOURCE_DIR}/src/compiler/asn_compiler.yacc ${PROJECT_SOURCE_DIR}/3rd_party/re2c/re2c
 
         COMMAND bison ${CMAKE_CURRENT_SOURCE_DIR}/compiler/asn_compiler.yacc -t --report=all -o ${CMAKE_CURRENT_BINARY_DIR}/autogen/asn_compiler.re
-        COMMAND ${CMAKE_SOURCE_DIR}/3rd_party/re2c/re2c --no-generation-date -o ${CMAKE_CURRENT_BINARY_DIR}/autogen/asn_compiler.hpp ${CMAKE_CURRENT_BINARY_DIR}/autogen/asn_compiler.re
-        COMMAND cp ${CMAKE_CURRENT_BINARY_DIR}/autogen/asn_compiler.hpp ${CMAKE_SOURCE_DIR}/src/compiler/autogen_copy/asn_compiler.hpp
+        COMMAND ${PROJECT_SOURCE_DIR}/3rd_party/re2c/re2c --no-generation-date -o ${CMAKE_CURRENT_BINARY_DIR}/autogen/asn_compiler.hpp ${CMAKE_CURRENT_BINARY_DIR}/autogen/asn_compiler.re
+        COMMAND cp ${CMAKE_CURRENT_BINARY_DIR}/autogen/asn_compiler.hpp ${PROJECT_SOURCE_DIR}/src/compiler/autogen_copy/asn_compiler.hpp
     )
 else()
-    configure_file(${CMAKE_SOURCE_DIR}/src/compiler/autogen_copy/asn_compiler.hpp ${CMAKE_CURRENT_BINARY_DIR}/autogen/asn_compiler.hpp COPYONLY)
+    configure_file(${PROJECT_SOURCE_DIR}/src/compiler/autogen_copy/asn_compiler.hpp ${CMAKE_CURRENT_BINARY_DIR}/autogen/asn_compiler.hpp COPYONLY)
 endif()
 
 
@@ -60,7 +60,7 @@ include(CTest)
 set(FAST_BER_CMAKE_CONFIG_DESTINATION "${CMAKE_INSTALL_LIBDIR}/fast_ber")
 
 configure_package_config_file(
-    ${CMAKE_SOURCE_DIR}/cmake/fast_ber_config.cmake.in
+    ${PROJECT_SOURCE_DIR}/cmake/fast_ber_config.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/fast_ber-config.cmake
    INSTALL_DESTINATION
     ${FAST_BER_CMAKE_CONFIG_DESTINATION}
@@ -102,7 +102,7 @@ write_basic_package_version_file(
 
 install(
    DIRECTORY
-    "${CMAKE_SOURCE_DIR}/include/"
+    "${PROJECT_SOURCE_DIR}/include/"
    DESTINATION
     "${CMAKE_INSTALL_INCLUDEDIR}"
 )
@@ -117,7 +117,7 @@ install(
 
 install(
    FILES
-    "${CMAKE_SOURCE_DIR}/cmake/fast_ber_generate.cmake"
+    "${PROJECT_SOURCE_DIR}/cmake/fast_ber_generate.cmake"
    DESTINATION
      ${FAST_BER_CMAKE_CONFIG_DESTINATION}
 )
