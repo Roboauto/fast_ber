@@ -88,7 +88,7 @@ void GeneralizedTime<Identifier>::set_time(const boost::local_time::local_date_t
     std::ostringstream ss;
 
     // assumes std::cout's locale has been set appropriately for the entire app
-    ss.imbue(std::locale(std::cout.getloc(), new boost::posix_time::time_facet(g_local_time_format)));
+    ss.imbue(std::locale(std::cout.getloc(), new boost::posix_time::time_facet(g_local_time_format.c_str())));
     ss << cs.local_time();
 
     std::string time_str = ss.str();
@@ -103,7 +103,7 @@ void GeneralizedTime<Identifier>::set_time(const boost::posix_time::ptime& time,
     std::ostringstream ss;
 
     // assumes std::cout's locale has been set appropriately for the entire app
-    ss.imbue(std::locale(std::cout.getloc(), new boost::posix_time::time_facet(g_universal_time_with_time_zone_format)));
+    ss.imbue(std::locale(std::cout.getloc(), new boost::posix_time::time_facet(g_universal_time_with_time_zone_format.c_str())));
     ss << time;
 
     std::string time_str = ss.str();
@@ -148,7 +148,7 @@ boost::posix_time::ptime GeneralizedTime<Identifier>::time() const
     if (frmt == TimeFormat::universal)
     {
         std::istringstream  iss(this->string());
-        iss.imbue(std::locale(std::locale::classic(), new boost::posix_time::time_input_facet(g_universal_time_format)));
+        iss.imbue(std::locale(std::locale::classic(), new boost::posix_time::time_input_facet(g_universal_time_format.c_str())));
         iss >> time;
     }
     else if (frmt == TimeFormat::universal_with_timezone)
@@ -156,13 +156,13 @@ boost::posix_time::ptime GeneralizedTime<Identifier>::time() const
         const auto& time_str = this->string();
 
         std::istringstream iss(time_str.substr(0, time_str.length() - 5));
-        iss.imbue(std::locale(std::locale::classic(), new boost::posix_time::time_input_facet(g_universal_time_with_time_zone_format)));
+        iss.imbue(std::locale(std::locale::classic(), new boost::posix_time::time_input_facet(g_universal_time_with_time_zone_format.c_str())));
         iss >> time;
     }
     else if (frmt == TimeFormat::local)
     {
         std::istringstream iss(this->string());
-        iss.imbue(std::locale(std::locale::classic(), new boost::posix_time::time_input_facet(g_local_time_format)));
+        iss.imbue(std::locale(std::locale::classic(), new boost::posix_time::time_input_facet(g_local_time_format.c_str())));
         iss >> time;
     }
     return time;
