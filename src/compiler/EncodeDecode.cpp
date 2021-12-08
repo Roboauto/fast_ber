@@ -23,6 +23,40 @@ std::string make_component_function(const std::string& function, const NamedType
     return function;
 }
 
+const Assignment* findAssignment(const Asn1Tree& tree, const std::string& name)
+{
+    for (const auto& module : tree.modules)
+    {
+        for (const auto& assignment : module.assignments)
+        {
+            if (assignment.name == name)
+            {
+                return &assignment;
+            }
+        }
+    }
+    return nullptr;
+}
+
+template <typename T = SequenceType>
+bool isAssignementOfType(const Asn1Tree& tree, const DefinedType& valueType)
+{
+    if (const Assignment* ass = findAssignment(tree, valueType.type_reference))
+    {
+        if (const TypeAssignment* typeIf = std::get_if<TypeAssignment>(&ass->specific))
+        {
+            if (auto bt = std::get_if<BuiltinType>(&typeIf->type))
+            {
+                if (std::holds_alternative<T>(*bt))
+                {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
 template <typename CollectionType>
 CodeBlock create_collection_encode_functions(const std::string& name, const CollectionType& collection,
                                              const Module& module, const Asn1Tree& tree)
@@ -48,11 +82,27 @@ CodeBlock create_collection_encode_functions(const std::string& name, const Coll
             block.add_line("content = content.subspan(header_length_guess);");
         }
         block.add_line("std::size_t content_length = 0;");
+        size_t i = 0;
 
         for (const ComponentType& component : collection.components)
         {
-            block.add_line("res = " + component.named_type.name + "." +
-                           make_component_function("encode", component.named_type, module, tree) + "(content);");
+            auto valueType = std::get_if<DefinedType>(&component.named_type.type);
+            if (module.tagging_default == TaggingMode::automatic && valueType &&
+                (isAssignementOfType<SequenceType>(tree, *valueType) ||
+                 isAssignementOfType<ChoiceType>(tree, *valueType)))
+            {
+                block.add_line(
+                    "res = " + component.named_type.name + "." +
+                    make_component_function("encode_with_id<Id<Class::context_specific, " + std::to_string(i) + ">>",
+                                            component.named_type, module, tree) +
+                    "(content);");
+            }
+            else
+            {
+                block.add_line("res = " + component.named_type.name + "." +
+                               make_component_function("encode", component.named_type, module, tree) + "(content);");
+            }
+
             block.add_line("if (!res.success)");
             {
                 auto scope2 = CodeScope(block);
@@ -60,6 +110,7 @@ CodeBlock create_collection_encode_functions(const std::string& name, const Coll
             }
             block.add_line("content = content.subspan(res.length);");
             block.add_line("content_length += res.length;");
+            ++i;
         }
         block.add_line("return wrap_with_ber_header(output, content_length, Identifier_{}, header_length_guess);");
     }
@@ -116,8 +167,23 @@ CodeBlock create_choice_encode_functions(const std::string& name, const ChoiceTy
             for (std::size_t i = 0; i < choice.choices.size(); i++)
             {
                 block.add_line("case " + std::to_string(i) + ":");
-                block.add_line("	res = fast_ber::get<" + std::to_string(i) + ">(*this)." +
-                               make_component_function("encode", choice.choices[i], module, tree) + "(content);");
+                auto valueType = std::get_if<DefinedType>(&choice.choices[i].type);
+
+                if (module.tagging_default == TaggingMode::automatic && valueType &&
+                    (isAssignementOfType<SequenceType>(tree, *valueType) ||
+                     isAssignementOfType<ChoiceType>(tree, *valueType)))
+                {
+                    block.add_line("	res = fast_ber::get<" + std::to_string(i) + ">(*this)." +
+                                   make_component_function("encode_with_id<Id<Class::context_specific, " +
+                                                               std::to_string(0) + ">>",
+                                                           choice.choices[i], module, tree) +
+                                   "(content);");
+                }
+                else
+                {
+                    block.add_line("	res = fast_ber::get<" + std::to_string(i) + ">(*this)." +
+                                   make_component_function("encode", choice.choices[i], module, tree) + "(content);");
+                }
                 block.add_line("	break;");
             }
             block.add_line("default: assert(0);");
@@ -356,12 +422,27 @@ CodeBlock create_collection_decode_functions(const std::string& name, const Coll
             }
             else
             {
+                std::unique_ptr<std::vector<Identifier>> ids;
+                if (module.tagging_default == TaggingMode::automatic) {
+                    ids = std::make_unique<std::vector<Identifier>>();
+                    for (const ComponentType& component : collection.components)
+                    {
+                        auto tmp = outer_identifiers(component.named_type.type, module, tree);
+                        std::copy(tmp.begin(), tmp.end(), std::back_inserter(*ids));
+                    }
+                }
+
+                int i = 0;
                 for (const ComponentType& component : collection.components)
                 {
                     if (component.is_optional || component.default_value)
                     {
+                        if (module.tagging_default != TaggingMode::automatic) {
+                            ids = std::make_unique<std::vector<Identifier>>(outer_identifiers(component.named_type.type, module, tree));
+                        }
+
                         std::string id_check = "if (iterator->is_valid() && (false ";
-                        for (const Identifier& id : outer_identifiers(component.named_type.type, module, tree))
+                        for (const Identifier& id : *ids)
                         {
                             id_check += " || " + id.name() + "::check_id_match(iterator->class_(), iterator->tag())";
                         }
@@ -369,11 +450,24 @@ CodeBlock create_collection_decode_functions(const std::string& name, const Coll
                         block.add_line(id_check);
 
                         {
-                            auto scope2 = CodeScope(block);
-                            block.add_line("res = this->" + component.named_type.name + "." +
-                                           make_component_function("decode", component.named_type, module, tree) +
-                                           "(*iterator);");
-
+                            auto scope2    = CodeScope(block);
+                            auto valueType = std::get_if<DefinedType>(&component.named_type.type);
+                            if (module.tagging_default == TaggingMode::automatic && valueType &&
+                                (isAssignementOfType<SequenceType>(tree, *valueType) ||
+                                 isAssignementOfType<ChoiceType>(tree, *valueType)))
+                            {
+                                block.add_line("res = this->" + component.named_type.name + "." +
+                                               make_component_function("decode_with_id<Id<Class::context_specific, " +
+                                                                           std::to_string(i) + ">>",
+                                                                       component.named_type, module, tree) +
+                                               "(*iterator);");
+                            }
+                            else
+                            {
+                                block.add_line("res = this->" + component.named_type.name + "." +
+                                               make_component_function("decode", component.named_type, module, tree) +
+                                               "(*iterator);");
+                            }
                             block.add_line("if (!res.success)");
                             {
                                 auto scope3 = CodeScope(block);
@@ -402,9 +496,23 @@ CodeBlock create_collection_decode_functions(const std::string& name, const Coll
                     }
                     else
                     {
-                        block.add_line("res = this->" + component.named_type.name + "." +
-                                       make_component_function("decode", component.named_type, module, tree) +
-                                       "(*iterator);");
+                        auto valueType = std::get_if<DefinedType>(&component.named_type.type);
+                        if (module.tagging_default == TaggingMode::automatic && valueType &&
+                            (isAssignementOfType<SequenceType>(tree, *valueType) ||
+                             isAssignementOfType<ChoiceType>(tree, *valueType)))
+                        {
+                            block.add_line("res = this->" + component.named_type.name + "." +
+                                           make_component_function("decode_with_id<Id<Class::context_specific, " +
+                                                                       std::to_string(i) + ">>",
+                                                                   component.named_type, module, tree) +
+                                           "(*iterator);");
+                        }
+                        else
+                        {
+                            block.add_line("res = this->" + component.named_type.name + "." +
+                                           make_component_function("decode", component.named_type, module, tree) +
+                                           "(*iterator);");
+                        }
 
                         block.add_line("if (!res.success)");
                         {
@@ -415,6 +523,7 @@ CodeBlock create_collection_decode_functions(const std::string& name, const Coll
                         }
                         block.add_line("++iterator;");
                     }
+                    ++i;
                 }
             }
         }
@@ -472,8 +581,24 @@ CodeBlock create_choice_decode_functions(const std::string& name, const ChoiceTy
                 for (std::size_t i = 0; i < choice.choices.size(); i++)
                 {
                     block.add_line("case " + std::to_string(i) + ":");
-                    block.add_line("	return this->template emplace<" + std::to_string(i) + ">()." +
-                                   make_component_function("decode", choice.choices[i], module, tree) + "(content);");
+
+                    auto valueType = std::get_if<DefinedType>(&choice.choices[i].type);
+                    if (module.tagging_default == TaggingMode::automatic && valueType &&
+                        (isAssignementOfType<SequenceType>(tree, *valueType) ||
+                         isAssignementOfType<ChoiceType>(tree, *valueType)))
+                    {
+                        block.add_line("	return this->template emplace<" + std::to_string(i) + ">()." +
+                                       make_component_function("decode_with_id<Id<Class::context_specific, " +
+                                                                   std::to_string(0) + ">>",
+                                                               choice.choices[i], module, tree) +
+                                       "(content);");
+                    }
+                    else
+                    {
+                        block.add_line("	return this->template emplace<" + std::to_string(i) + ">()." +
+                                       make_component_function("decode", choice.choices[i], module, tree) +
+                                       "(content);");
+                    }
                 }
             }
         }

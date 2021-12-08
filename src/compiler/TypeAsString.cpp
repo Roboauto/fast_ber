@@ -267,10 +267,24 @@ std::string type_as_string(const SequenceType&, const Module&, const Asn1Tree&, 
 {
     return type_name;
 }
-std::string type_as_string(const SequenceOfType& sequence, const Module&, const Asn1Tree&, const std::string& type_name,
-                           const std::string& identifier_override)
+std::string type_as_string(const SequenceOfType& sequence, const Module&, const Asn1Tree& t,
+                           const std::string& type_name, const std::string& identifier_override)
 {
-    std::string res = "SequenceOf<" + type_name + "Contained";
+    std::string realModule;
+    for (const auto& mod : t.modules)
+    {
+        try
+        {
+            resolve(t, mod, type_name);
+            realModule = mod.module_reference;
+            break;
+        }
+        catch (...)
+        {
+        }
+    }
+
+    std::string res = "SequenceOf<::fast_ber::" + realModule + "::" + type_name + "Contained";
     if (identifier_override.empty())
     {
         res += ", ExplicitId<UniversalTag::sequence>";

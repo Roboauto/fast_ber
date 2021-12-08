@@ -19,7 +19,10 @@ set(BENCHMARKS_INCLUDE_ASN1C true)
 find_package(Boost REQUIRED COMPONENTS date_time)
 
 if (CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
-  add_compile_options("-O3" "-Wall" "-Wextra" "-pedantic" "-Wcast-align" "-Wpointer-arith" "-Wshadow")
+  if (CMAKE_BUILD_TYPE MATCHES "Release")
+    add_compile_options("-O3")
+  endif()
+  add_compile_options("-Wall" "-Wextra" "-pedantic" "-Wcast-align" "-Wpointer-arith" "-Wshadow")
   add_compile_options("-Wfloat-equal" "-Wuninitialized")
   add_compile_options("-Wno-missing-field-initializers") # Stop spam on g++-4.8
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wold-style-cast")
