@@ -39,10 +39,10 @@ target_include_directories(fast_ber_compiler_lib PUBLIC
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/compiler/include>
                            ${CMAKE_CURRENT_BINARY_DIR})
 
-target_link_libraries(fast_ber_lib PUBLIC ${ABSEIL_LIBS} Boost::date_time)
-target_link_libraries(fast_ber_compiler_lib PUBLIC ${ABSEIL_LIBS})
-target_link_libraries(fast_ber_compiler fast_ber_compiler_lib)
-target_link_libraries(fast_ber_view fast_ber_lib)
+target_link_libraries(fast_ber_lib PUBLIC ${ABSEIL_LIBS} Boost::date_time Boost::disable_autolinking)
+target_link_libraries(fast_ber_compiler_lib PUBLIC ${ABSEIL_LIBS} Boost::disable_autolinking)
+target_link_libraries(fast_ber_compiler fast_ber_compiler_lib Boost::disable_autolinking)
+target_link_libraries(fast_ber_view fast_ber_lib Boost::disable_autolinking)
 
 add_library(fast_ber::fast_ber_lib ALIAS fast_ber_lib)
 add_executable(fast_ber::fast_ber_compiler ALIAS fast_ber_compiler)
