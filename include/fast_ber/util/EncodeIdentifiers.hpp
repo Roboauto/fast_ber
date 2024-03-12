@@ -6,6 +6,7 @@
 #include "fast_ber/ber_types/Tag.hpp"
 
 #include <span>
+#include <algorithm>
 
 namespace fast_ber
 {
